@@ -1,25 +1,16 @@
 /**
  * Created by mashiru on 2/10/18.
  */
-
-
-
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Scanner;
 
-public class GSkyline {
-    public int k;
+public class TopKGSkyline {
+    public int groupSize;
     public long numOfGroups1; // Unit group wise
     public long numOfGroups2; // Point wise
     public long numOfGroups3; // New brute force
@@ -31,7 +22,7 @@ public class GSkyline {
     public int numOfChecked2; // How many times checked for Point wise normal
     public int numOfChecked3; // How many times checked for Point wise direct
 
-    public static int nSk;
+    public static int numOfNodes;
 
     public static long StempDtime;
     public static long Stemptime;
@@ -53,8 +44,8 @@ public class GSkyline {
 
     public int generateTimes;
 
-    public GSkyline() {
-        k = 0;
+    public TopKGSkyline() {
+        groupSize = 0;
         numOfGroups1 = 0;
         numOfGroups2 = 0;
         numOfGroups3 = 0;
@@ -66,7 +57,7 @@ public class GSkyline {
         numOfChecked2 = 0;
         numOfChecked3 = 0;
 
-        nSk = 0;
+        numOfNodes = 0;
 
         StempDtime = 0;
         Stemptime = 0;
@@ -102,8 +93,8 @@ public class GSkyline {
     }
 
     public void subPermutation(ArrayList<ArrayList<Integer[]>> groups,
-                               ArrayList<Integer[]> data, ArrayList<Integer[]> tar, int k) {
-        if (k == 0) {
+                               ArrayList<Integer[]> data, ArrayList<Integer[]> tar, int groupSize) {
+        if (groupSize == 0) {
             groups.add(tar);
             return;
         }
@@ -113,7 +104,7 @@ public class GSkyline {
                 ArrayList<Integer[]> aa = new ArrayList<Integer[]>();
                 aa.addAll(tar);
                 aa.add(i);
-                subPermutation(groups, data, aa, k - 1);
+                subPermutation(groups, data, aa, groupSize - 1);
             }
     }
 
@@ -144,8 +135,8 @@ public class GSkyline {
             for (int j = 0; j < a.size(); j++) {
                 equalMark = 0;
                 boolean equal = true;
-                for (int k = 0; k < i.get(j).length; k++)
-                    if (i.get(j)[k] != b.get(j)[k]) {
+                for (int groupSize = 0; groupSize < i.get(j).length; groupSize++)
+                    if (i.get(j)[groupSize] != b.get(j)[groupSize]) {
                         equal = false;
                         break;
                     }
@@ -169,8 +160,8 @@ public class GSkyline {
 
     public void subGroups(ArrayList<ArrayList<Integer[]>> groups,
                           ArrayList<Integer[]> data, ArrayList<Integer[]> tar, int start,
-                          int k) {
-        if (k == 0) {
+                          int groupSize) {
+        if (groupSize == 0) {
             groups.add(tar);
             return;
         }
@@ -179,42 +170,8 @@ public class GSkyline {
             ArrayList<Integer[]> a = new ArrayList<Integer[]>();
             a.addAll(tar);
             a.add(data.get(i));
-            subGroups(groups, data, a, i, k - 1);
+            subGroups(groups, data, a, i, groupSize - 1);
         }
-    }
-
-    public ArrayList<ArrayList<Integer[]>> createGroups(
-            ArrayList<Integer[]> data, int k) {
-        ArrayList<ArrayList<Integer[]>> groups = new ArrayList<ArrayList<Integer[]>>();
-
-        for (int i = 0; i < data.size(); i++) {
-            ArrayList<Integer[]> a = new ArrayList<Integer[]>();
-            a.add(data.get(i));
-            subGroups(groups, data, a, i, k - 1);
-        }
-        return groups;
-    }
-
-    // original brute force method
-    public void bruteForce(ArrayList<Integer[]> data) {
-        ArrayList<ArrayList<Integer[]>> groups = this.createGroups(data,
-                this.getK());
-        int groupCount = 0;
-        for (ArrayList<Integer[]> i : groups) {
-            boolean mark = false;
-            for (ArrayList<Integer[]> j : groups) {
-                if (!i.containsAll(j)) {
-                    if (this.isGroupDominate(j, i)) {
-                        mark = true;
-                        break;
-                    }
-                }
-            }
-            if (!mark) {
-                groupCount++;
-            }
-        }
-        System.out.println("The number of skyline groups: " + groupCount);
     }
 
     public void createSubs(ArrayList<SkNode> group, ArrayList<SkNode> layers,
@@ -242,144 +199,13 @@ public class GSkyline {
         for (int i = 0; i < layers.size(); i++) {
             ArrayList<SkNode> group = new ArrayList<SkNode>();
             group.add(layers.get(i));
-            createSubs(group, layers, i, k - 1);
+            createSubs(group, layers, i, groupSize - 1);
         }
 
         System.out.println("The number of skyline groups               by baseline method: "
                 + numOfGroups3);
     }
 
-    // skyline algorithm for raw data
-    public ArrayList<Integer[]> getSkyline(ArrayList<Integer[]> data) {
-        ArrayList<Integer[]> skyline = new ArrayList<Integer[]>();
-        ArrayList<Integer[]> sorted = new ArrayList<Integer[]>();
-
-        sorted.addAll(data);
-
-        Collections.sort(sorted, new Comparator<Object>() {
-
-            @Override
-            public int compare(Object o1, Object o2) {
-                if (o1 instanceof Integer[])
-                    return (compare((Integer[]) o1, (Integer[]) o2));
-                return 0;
-            }
-
-            public int compare(Integer[] o1, Integer[] o2) {
-                return (o1[0] < o2[0] ? -1 : (o1[0] == o2[0] ? 0 : 1));
-            }
-
-        });
-
-        skyline.add(sorted.get(0)); // add the first element
-        int y = sorted.get(0)[1];
-        for (int i = 1; i < sorted.size(); i++)
-            if (sorted.get(i)[1] < y) {
-                y = sorted.get(i)[1];
-                skyline.add(sorted.get(i));
-            }
-//		// print
-//		for (Integer[] i : skyline)
-//			for (int j = 0; j < i.length; j++)
-//				System.out.println(j + 1 + ":" + i[j]);
-
-        return skyline;
-    }
-
-    // create layers: Brute force
-    public ArrayList<SkNode> createLayersB(ArrayList<Integer[]> data) {
-        ArrayList<SkNode> layers = new ArrayList<SkNode>();
-        ArrayList<Integer[]> temp = new ArrayList<Integer[]>();
-        temp.addAll(data);
-        int layer = 0;
-
-        for (int ii=0; ii<k; ii++)
-        {
-            //while (temp.size() != 0) {
-            ArrayList<Integer[]> skyline = getSkyline(temp);
-            for (Integer[] i : skyline) {
-                SkNode sknode = new SkNode(i, layer);
-                layers.add(sknode);
-            }
-            temp.removeAll(skyline);
-            layer++;
-        }
-        return layers;
-    }
-
-    // create layers: Not brute force & cannot handle higher dimension
-    public ArrayList<SkNode> createLayers(ArrayList<Integer[]> data) {
-        ArrayList<SkNode> results = new ArrayList<SkNode>();
-        // ArrayList<Integer[]> sorted = new ArrayList<Integer[]>();
-
-        // sort the points
-        // sorted.addAll(data);
-        Collections.sort(data, new Comparator<Object>() {
-
-            @Override
-            public int compare(Object o1, Object o2) {
-                if (o1 instanceof Integer[])
-                    return (compare((Integer[]) o1, (Integer[]) o2));
-                return 0;
-            }
-
-            public int compare(Integer[] o1, Integer[] o2) {
-                return (o1[0] < o2[0] ? -1 : (o1[0] == o2[0] ? 0 : 1));
-            }
-
-        });
-
-        // first point belongs to the first layer
-        SkNode p1 = new SkNode(data.get(0), 0);
-        int maxLayer = 0;
-        ArrayList<ArrayList<SkNode>> layers = new ArrayList<ArrayList<SkNode>>();
-        ArrayList<SkNode> layer = new ArrayList<SkNode>();
-        layer.add(p1);
-        layers.add(layer);
-
-        for (int i = 1; i < data.size(); i++) {
-            SkNode pi = new SkNode(data.get(i), 0);
-            if (!isDominate(layers.get(0).get(layers.get(0).size() - 1).val,
-                    data.get(i)))
-                layers.get(0).add(pi);
-            else if (isDominate(
-                    layers.get(maxLayer).get(layers.get(maxLayer).size() - 1).val,
-                    data.get(i))) {
-                if (maxLayer != k - 1) {
-                    ArrayList<SkNode> layeri = new ArrayList<SkNode>();
-                    pi.layer = ++maxLayer;
-                    layeri.add(pi);
-                    layers.add(layeri);
-                }
-            } else {
-                // binary search
-                int left = 0;
-                int right = maxLayer;
-                int mid = 0;
-                while (true) {
-                    mid = (left + right) / 2;
-                    if (isDominate(
-                            layers.get(mid).get(layers.get(mid).size() - 1).val,
-                            pi.val))
-                        left = mid + 1;
-                    else if (!isDominate(
-                            layers.get(mid - 1).get(
-                                    layers.get(mid - 1).size() - 1).val, pi.val))
-                        right = mid - 1;
-                    else
-                        break;
-                }
-                pi.layer = mid;
-                layers.get(mid).add(pi);
-            }
-        }
-
-        // generate the two dimension array to one dimension
-        for (ArrayList<SkNode> i : layers)
-            for (SkNode j : i)
-                results.add(j);
-        return results;
-    }
 
     // create layers: Not brute force & Higher dimension
     public ArrayList<SkNode> createLayersD(ArrayList<Integer[]> data) {
@@ -389,7 +215,6 @@ public class GSkyline {
         // sort the points
         // sorted.addAll(data);
         Collections.sort(data, new Comparator<Object>() {
-
             @Override
             public int compare(Object o1, Object o2) {
                 if (o1 instanceof Integer[])
@@ -404,246 +229,59 @@ public class GSkyline {
         });
 
         // first point belongs to the first layer
-        SkNode p1 = new SkNode(data.get(0), 0);
+        SkNode pt0 = new SkNode(data.get(0), 0);
         ArrayList<ArrayList<SkNode>> layers = new ArrayList<ArrayList<SkNode>>();
         ArrayList<SkNode> layer = new ArrayList<SkNode>();
-        layer.add(p1);
+        layer.add(pt0);
         layers.add(layer);
 
-        // no more than k layers will be used
-        for (int i = 1; i < k; i++) {
-            ArrayList<SkNode> newLayer = new ArrayList<SkNode>();
-            layers.add(newLayer);
-        }
+        // no more than groupSize layers will be used
+        for (int layerIdx = 1; layerIdx < groupSize; layerIdx++)
+            layers.add(new ArrayList<SkNode>()); // add new layer
 
-        for (int j = 1; j < data.size(); j++) {
-            SkNode pj = new SkNode(data.get(j), 0);
+        for (int ptIdx = 1; ptIdx < data.size(); ptIdx++) {
+            SkNode pt = new SkNode(data.get(ptIdx), 0);
             int maxLayer = -1;
-            for (ArrayList<SkNode> a : layers)
-                for (SkNode i : a)
-                    if (isDominate(i.val, pj.val) && i.layer > maxLayer)
-                        maxLayer = i.layer;
-            pj.layer = ++maxLayer;
-
-            if (pj.layer < k)
-                layers.get(pj.layer).add(pj);
+            for (ArrayList<SkNode> layerElm : layers) // for each layer in all layers
+                for (SkNode ndElm : layerElm) // for each node in this layer
+                    if (isDominate(ndElm.val, pt.val) && ndElm.layer > maxLayer)
+                        maxLayer = ndElm.layer;
+            pt.layer = ++maxLayer;
+            if (pt.layer < groupSize)
+                layers.get(pt.layer).add(pt);
         }
 
-        for (ArrayList<SkNode> i : layers)
-            for (SkNode j : i)
-                results.add(j);
+        for (ArrayList<SkNode> layerElm : layers)
+            for (SkNode ndElm : layerElm)
+                results.add(ndElm);
         return results;
-    }
-
-    // create layers relation: only parents
-    public void createLayerStructDFS(ArrayList<SkNode> layers) {
-        for (SkNode i : layers) {
-            i.setId(layers.indexOf(i)); // indicate each point
-
-            for (SkNode j : layers)
-                if (i != j) {
-                    // if(isDominate(i.val, j.val))
-                    // i.children.add(j);
-                    if (isDominate(j.val, i.val))
-                        i.parents.add(j);
-                }
-        }
-
-        Iterator<SkNode> i = layers.iterator();
-        while (i.hasNext()) {
-            SkNode p = i.next();
-            nSk++;
-            if (p.parents.size() > k - 1)
-                i.remove();
-        }
     }
 
     // normal create layers relation
-    public void createLayerStruct(ArrayList<SkNode> layers) {
-        for (SkNode i : layers) {
-            i.setId(layers.indexOf(i)); // indicate each point
-
-            for (SkNode j : layers)
-                if (i != j) {
-                    // if(isDominate(i.val, j.val))
-                    // i.children.add(j);
-                    if (isDominate(j.val, i.val))
-                        i.parents.add(j);
-                }
+    public void createLayerStruct(ArrayList<SkNode> nodes) {
+        for (SkNode nodeI : nodes) {
+            nodeI.setId(nodes.indexOf(nodeI)); // Set the Id of point according to the order in the list
+            for (SkNode nodeJ : nodes)
+                if (nodeI != nodeJ)
+                    if (isDominate(nodeJ.val, nodeI.val))
+                        nodeI.parents.add(nodeJ);
         }
 
-        Iterator<SkNode> i = layers.iterator();
-        while (i.hasNext()) {
-            SkNode p = i.next();
-            nSk++;
-            if (p.parents.size() > k - 1)
-                i.remove();
+        Iterator<SkNode> nodeIter = nodes.iterator();
+        while (nodeIter.hasNext()) {
+            SkNode pt = nodeIter.next();
+            numOfNodes++;
+            if (pt.parents.size() > groupSize - 1)
+                nodeIter.remove(); // Removes from the underlying collection the last element returned by this iterator (optional operation).
         }
 
-        for (SkNode ii : layers) {
-            ii.setId(layers.indexOf(ii)); // indicate each point
-
-            for (SkNode j : layers)
-                if (ii != j) {
-                    if (isDominate(ii.val, j.val))
-                        ii.children.add(j);
-                }
+        for (SkNode nodeI : nodes) {
+            nodeI.setId(nodes.indexOf(nodeI)); // ? repeat set ID?
+            for (SkNode nodeJ : nodes)
+                if (nodeI != nodeJ)
+                    if (isDominate(nodeI.val, nodeJ.val)) // why did not add into line 460
+                        nodeI.children.add(nodeJ);
         }
-    }
-
-    // Get the skyline points in input set: Higher dimension
-    public ArrayList<SkNode> getSkyLineD(ArrayList<SkNode> a) {
-        ArrayList<SkNode> results = new ArrayList<SkNode>();
-
-        if (a.size() > 0) {
-            ArrayList<ArrayList<SkNode>> layers = new ArrayList<ArrayList<SkNode>>();
-            for (int i = 0; i < k; i++) {
-                ArrayList<SkNode> layer = new ArrayList<SkNode>();
-                layers.add(layer);
-            }
-
-            // list a is not sorted by x
-            Collections.sort(a, new Comparator<Object>() {
-
-                @Override
-                public int compare(Object o1, Object o2) {
-                    if (o1 instanceof SkNode)
-                        return (compare((SkNode) o1, (SkNode) o2));
-                    return 0;
-                }
-
-                public int compare(SkNode o1, SkNode o2) {
-                    return (o1.val[0] < o2.val[0] ? -1
-                            : (o1.val[0] == o2.val[0] ? 0 : 1));
-                }
-
-            });
-
-            ArrayList<SkNode> temp = new ArrayList<SkNode>();
-            layers.get(a.get(0).layer).add(a.get(0)); // the first point must be
-            // a skyline point
-            temp.add(a.get(0));
-
-            // check the rest
-            for (int i = 1; i < a.size(); i++) {
-                boolean mark = true;
-
-                // a skyline point cannot be dominated by any points in list
-                // temp
-                for (SkNode j : temp)
-                    if (isDominate(j.val, a.get(i).val)) {
-                        mark = false;
-                        break;
-                    }
-                if (mark)
-                    layers.get(a.get(i).layer).add(a.get(i));
-            }
-
-            for (ArrayList<SkNode> i : layers)
-                for (SkNode j : i)
-                    results.add(j);
-        }
-
-        return results;
-    }
-
-    // Get the skyline points in input set: Two dimension
-    public ArrayList<SkNode> getSkyLine(ArrayList<SkNode> a) {
-        ArrayList<SkNode> results = new ArrayList<SkNode>();
-
-        if (a.size() > 0) {
-            ArrayList<ArrayList<SkNode>> layers = new ArrayList<ArrayList<SkNode>>();
-            for (int i = 0; i < k; i++) {
-                ArrayList<SkNode> layer = new ArrayList<SkNode>();
-                layers.add(layer);
-            }
-
-            // list a is not sorted by x
-            Collections.sort(a, new Comparator<Object>() {
-
-                @Override
-                public int compare(Object o1, Object o2) {
-                    if (o1 instanceof SkNode)
-                        return (compare((SkNode) o1, (SkNode) o2));
-                    return 0;
-                }
-
-                public int compare(SkNode o1, SkNode o2) {
-                    return (o1.val[0] < o2.val[0] ? -1
-                            : (o1.val[0] == o2.val[0] ? 0 : 1));
-                }
-
-            });
-
-            // results.add(a.get(0)); //the first point must be a skyline point
-            layers.get(a.get(0).layer).add(a.get(0));
-
-            int y = a.get(0).val[1];
-            for (int i = 1; i < a.size(); i++)
-                if (a.get(i).val[1] < y) {
-                    y = a.get(i).val[1];
-                    layers.get(a.get(i).layer).add(a.get(i));
-                    // results.add(a.get(i));
-                }
-
-            for (ArrayList<SkNode> i : layers)
-                for (SkNode j : i)
-                    results.add(j);
-        }
-
-        return results;
-    }
-
-    // Create layer relation: Direct parents & Children
-    public void createLayerStructD(ArrayList<SkNode> layers) {
-
-        // generate all direct parents
-        for (SkNode i : layers) {
-            i.setId(layers.indexOf(i)); // indicate each point
-
-            for (SkNode j : layers)
-                if (i != j) {
-                    if (isDominate(j.val, i.val))
-                        i.allparentsD.add(j);
-                }
-        }
-
-        Iterator<SkNode> iii = layers.iterator();
-        while (iii.hasNext()) {
-            SkNode p = iii.next();
-            nSk++;
-            if (p.allparentsD.size() > k - 1) {
-                iii.remove();
-            }
-        }
-
-        // generate all direct children
-        for (int i = 0; i < layers.size() - 1; i++) {
-            ArrayList<SkNode> temp = new ArrayList<SkNode>();
-
-            for (int j = i + 1; j < layers.size(); j++) {
-                int mark = 0;
-                for (int h = 0; h < layers.get(i).val.length; h++)
-                    if (layers.get(j).val[h] > layers.get(i).val[h])
-                        mark++;
-                if (mark == layers.get(i).val.length)
-                    temp.add(layers.get(j));
-            }
-
-            layers.get(i).children
-                    .addAll(layers.get(0).val.length == 2 ? getSkyLine(temp)
-                            : getSkyLineD(temp));
-        }
-
-        // generate all direct parents
-        for (SkNode ii : layers) {
-            ii.setId(layers.indexOf(ii)); // indicate each point
-
-            for (SkNode j : ii.children)
-                j.parents.add(ii);
-
-        }
-
     }
 
     public void generateUnitsDFS(ArrayList<ArrayList<SkNode>> units,
@@ -673,12 +311,12 @@ public class GSkyline {
 
                     numOfCheckDFS++;
 
-                    if (newTotal.size() < k - 1) {
+                    if (newTotal.size() < groupSize - 1) {
                         ArrayList<SkNode> newUnit = new ArrayList<SkNode>();
                         newUnit.addAll(i);
                         newUnit.add(std.get(j));
                         newUnits.add(newUnit);
-                    } else if (newTotal.size() == k - 1) {
+                    } else if (newTotal.size() == groupSize - 1) {
                         numOfGroups1++;
 
                         // for(SkNode kk:newTotal)
@@ -702,7 +340,7 @@ public class GSkyline {
 
         for (int i = layers.size() - 1; i >= 0; i--)
             // for(SkNode i:layers)
-            if (layers.get(i).parents.size() < k - 1) {
+            if (layers.get(i).parents.size() < groupSize - 1) {
                 ArrayList<SkNode> unit = new ArrayList<SkNode>();
                 // unit.addAll(i.parents);
                 std.add(layers.get(i));
@@ -710,7 +348,7 @@ public class GSkyline {
                 unitGroups.add(unit);
             }
             // output skyline group
-            else if (layers.get(i).parents.size() == k - 1) {
+            else if (layers.get(i).parents.size() == groupSize - 1) {
                 numOfGroups1++;
                 // for(SkNode j:layers.get(i).parents)
                 // System.out.println(j.val[0] + ", " + j.val[1] + "  id is  " +
@@ -760,12 +398,12 @@ public class GSkyline {
 
                     numOfChecked1++;
 
-                    if (newTotal.size() < k - 1) {
+                    if (newTotal.size() < groupSize - 1) {
                         ArrayList<SkNode> newUnit = new ArrayList<SkNode>();
                         newUnit.addAll(i);
                         newUnit.add(std.get(j));
                         newUnits.add(newUnit);
-                    } else if (newTotal.size() == k - 1) {
+                    } else if (newTotal.size() == groupSize - 1) {
                         numOfGroups5++;
 
                         // for(SkNode kk:newTotal)
@@ -789,7 +427,7 @@ public class GSkyline {
         // createLayerStruct(layers);
 
         for (SkNode i : layers)
-            if (i.parents.size() < k - 1) {
+            if (i.parents.size() < groupSize - 1) {
                 ArrayList<SkNode> unit = new ArrayList<SkNode>();
                 // unit.addAll(i.parents);
                 std.add(i);
@@ -797,7 +435,7 @@ public class GSkyline {
                 unitGroups.add(unit);
             }
             // output skyline group
-            else if (i.parents.size() == k - 1) {
+            else if (i.parents.size() == groupSize - 1) {
                 numOfGroups5++;
                 // for(SkNode j:i.parents)
                 // System.out.println(j.val[0] + ", " + j.val[1]);
@@ -852,10 +490,10 @@ public class GSkyline {
         return (mark == a.length ? true : false);
     }
 
-    // Generate skyline groups for each k
+    // Generate skyline groups for each groupSize
     public void generateGroups(ArrayList<SkNode> group, ArrayList<SkNode> std,
                                int num) {
-        if (num == k) {
+        if (num == groupSize) {
             numOfGroups2++;
             // for(SkNode i:group)
             // System.out.println(i.val[0] + "	" + i.val[1]);
@@ -938,10 +576,10 @@ public class GSkyline {
                         + numOfGroups2);
     }
 
-    // Generate skyline groups for each k: Direct parents & children
+    // Generate skyline groups for each groupSize: Direct parents & children
     public void generateGroupsD(ArrayList<SkNode> group, ArrayList<SkNode> std,
                                 int num) {
-        if (num == k) {
+        if (num == groupSize) {
             numOfGroups4++;
             skGroupsPD.add(group);
             return;
@@ -985,86 +623,8 @@ public class GSkyline {
                 }
     }
 
-    // Point wise method: Direct parents
-    public void pointWiseD(ArrayList<SkNode> layers) {
-        ArrayList<SkNode> std = new ArrayList<SkNode>();
-
-        for (SkNode i : layers)
-            if (i.layer == 0)
-                std.add(i);
-            else
-                break;
-
-        for (SkNode i : layers)
-            if (i.layer == 0) {
-                ArrayList<SkNode> group = new ArrayList<SkNode>();
-                group.add(i);
-
-                generateGroupsD(group, std, 1);
-
-            } else
-                break;
-
-        System.out
-                .println("The number of skyline groups generated by direct point wise: "
-                        + numOfGroups4);
-    }
-
-
-    // only for testing
-    public ArrayList<ArrayList<SkNode>> diff(ArrayList<ArrayList<SkNode>> a,
-                                             ArrayList<ArrayList<SkNode>> b) {
-        ArrayList<ArrayList<SkNode>> diff = new ArrayList<ArrayList<SkNode>>();
-        int count = 0;
-
-        if (a.size() > b.size()) {
-
-            for (ArrayList<SkNode> i : a)
-                for (ArrayList<SkNode> j : b)
-                    for (int t = 0; t < i.size(); t++) {
-                        int mark = 0;
-                        if (i.get(t).val[0] == j.get(t).val[0]
-                                && i.get(t).val[1] == j.get(t).val[1])
-                            mark++;
-                        if (mark == j.size())
-                            count++;
-                    }
-
-            if (count == b.size())
-                System.out.println("a contains b");
-
-            for (ArrayList<SkNode> i : a)
-                for (ArrayList<SkNode> j : diff) {
-                    boolean mark = true;
-                    for (int t = 0; t < i.size(); t++)
-                        if (i.get(t).val[0] != j.get(t).val[0]
-                                || i.get(t).val[1] != j.get(t).val[1]) {
-                            mark = false;
-                            break;
-                        }
-                    if (mark)
-                        System.out.println("Yes");
-                }
-        } else {
-            for (ArrayList<SkNode> i : b)
-                for (ArrayList<SkNode> j : a)
-                    for (int t = 0; t < i.size(); t++) {
-                        int mark = 0;
-                        if (i.get(t).val[0] == j.get(t).val[0]
-                                && i.get(t).val[1] == j.get(t).val[1])
-                            mark++;
-                        if (mark == j.size())
-                            count++;
-                    }
-
-            if (count == a.size())
-                System.out.println("b contains a");
-        }
-        return diff;
-    }
-
     public static void main(String[] args) throws FileNotFoundException {
-        GSkyline test = new GSkyline();
+        TopKGSkyline test = new TopKGSkyline();
 
         int fortimes = 1;
         int sfortimes = 1;
@@ -1099,31 +659,31 @@ public class GSkyline {
                 // rawData.clear();
                 scanner.close();
 
-                // input k, k is the group size
+                // input groupSize, groupSize is the group size
                 // Scanner input = new Scanner(System.in);
                 // test.setK(input.nextInt());
                 // input.close();
-                test.k = 5;
+                test.groupSize = 5;
 
                 // create layers
                 // twoD or higherD for computing layers
                 long cStart1 = System.nanoTime();
                 //ArrayList<SkNode> layers = test.createLayers(data);
-                ArrayList<SkNode> layers = test.createLayersD(data);
+                ArrayList<SkNode> nodesByLayer = test.createLayersD(data); // Construct the nodes in layers
                 long cEnd1 = System.nanoTime();
                 creatLayer = creatLayer + (cEnd1 - cStart1);
 
 
-                test.createLayerStruct(layers);// parents and children
+                test.createLayerStruct(nodesByLayer);// build the graph: parents and children
 
-                ArrayList<SkNode> layers1 = layers;
-                ArrayList<SkNode> layers2 = layers;
-                ArrayList<SkNode> layers3 = layers;
-                ArrayList<SkNode> layers4 = layers;
+                ArrayList<SkNode> layers1 = nodesByLayer;
+                ArrayList<SkNode> layers2 = nodesByLayer;
+                ArrayList<SkNode> layers3 = nodesByLayer;
+                ArrayList<SkNode> layers4 = nodesByLayer;
 
 
                 long start1 = System.nanoTime();
-                test.unitGroupWiseDFS(layers1);
+                test.unitGroupWiseDFS(layers1); // ? DFS
                 long end1 = System.nanoTime();
                 timeSum1 = timeSum1 + end1 - start1;
 
@@ -1161,12 +721,12 @@ public class GSkyline {
         System.out.println("Baseline            Time: " + timeSum4 / fortimes/ sfortimes);
     }
 
-    public int getK() {
-        return k;
+    public int getGroupSize() {
+        return groupSize;
     }
 
-    public void setK(int k) {
-        this.k = k;
+    public void setGroupSize(int groupSize) {
+        this.groupSize = groupSize;
     }
 }
 
