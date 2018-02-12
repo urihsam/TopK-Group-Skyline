@@ -3,32 +3,29 @@
  */
 import java.util.ArrayList;
 
-public class SkNode {
-    public Integer[] val;
-    public int layer;
-    public int id;
-    public ArrayList<SkNode> parents;
-    public ArrayList<SkNode> children;
-    public ArrayList<SkNode> allparentsD;//only for directedPoint to record allpartents
+public class SkNode implements Comparable{
+    protected Integer[] val;
+    protected int layerIdx;
+    protected int id;
+    protected ArrayList<SkNode> parents;
+    protected ArrayList<SkNode> children;
 
     public SkNode(int d) {
         this.val = new Integer[d];
-        this.layer = 0;
+        this.layerIdx = 0;
         this.id = 0;
         this.parents = new ArrayList<SkNode>();
         this.children = new ArrayList<SkNode>();
-        this.allparentsD = new ArrayList<SkNode>();
     }
 
-    public SkNode(Integer[] val, int layer) {
+    public SkNode(Integer[] val, int layerIdx) {
         this.val = new Integer[val.length];
-        this.layer = layer;
+        this.layerIdx = layerIdx;
         this.id = 0;
         for(int i=0; i<val.length; i++)
             this.val[i] = val[i];
         this.parents = new ArrayList<SkNode>();
         this.children = new ArrayList<SkNode>();
-        this.allparentsD = new ArrayList<SkNode>();
     }
 
     public Integer[] getVal() {
@@ -40,12 +37,12 @@ public class SkNode {
             this.val[i] = val[i];
     }
 
-    public int getLayer() {
-        return layer;
+    public int getLayerIdx() {
+        return layerIdx;
     }
 
-    public void setLayer(int layer) {
-        this.layer = layer;
+    public void setLayerIdx(int layerIdx) {
+        this.layerIdx = layerIdx;
     }
 
     public ArrayList<SkNode> getParents() {
@@ -62,6 +59,12 @@ public class SkNode {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    @Override
+    public int compareTo(Object other) {
+        /* For Ascending order*/
+        return this.getChildren().size() - ((SkNode)other).getChildren().size(); // the difference between dominating points
     }
 }
 
