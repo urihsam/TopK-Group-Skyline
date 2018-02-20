@@ -3,12 +3,14 @@
  */
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Iterator;
 import java.util.Scanner;
+
 
 public class TopKGSkyline {
     protected int groupSize;
@@ -38,8 +40,8 @@ public class TopKGSkyline {
 
 
     // create layers: Not brute force & Higher dimension
-    public ArrayList<SkNode> createLayerNodes(ArrayList<Integer[]> data) {
-        ArrayList<SkNode> results = new ArrayList<SkNode>();
+    public List<SkNode> createLayerNodes(List<Integer[]> data) {
+        List<SkNode> results = new ArrayList<SkNode>();
 
         // sort the points
         Collections.sort(data, new Comparator<Object>() {
@@ -53,8 +55,8 @@ public class TopKGSkyline {
 
         // first point belongs to the first layer
         SkNode pt0 = new SkNode(data.get(0), 0);
-        ArrayList<ArrayList<SkNode>> layers = new ArrayList<ArrayList<SkNode>>();
-        ArrayList<SkNode> layer = new ArrayList<SkNode>();
+        List<List<SkNode>> layers = new ArrayList<List<SkNode>>();
+        List<SkNode> layer = new ArrayList<SkNode>();
         layer.add(pt0);
         layers.add(layer);
 
@@ -65,7 +67,7 @@ public class TopKGSkyline {
         for (int ptIdx = 1; ptIdx < data.size(); ptIdx++) {
             SkNode pt = new SkNode(data.get(ptIdx), 0);
             int maxLayer = -1;
-            for (ArrayList<SkNode> layerElm : layers) // for each layer in all layers
+            for (List<SkNode> layerElm : layers) // for each layer in all layers
                 for (SkNode ndElm : layerElm) // for each node in this layer
                     if (isDominate(ndElm.val, pt.val) && ndElm.getLayerIdx() > maxLayer)
                         maxLayer = ndElm.getLayerIdx();
@@ -74,14 +76,14 @@ public class TopKGSkyline {
                 layers.get(pt.getLayerIdx()).add(pt);
         }
 
-        for (ArrayList<SkNode> layerElm : layers)
+        for (List<SkNode> layerElm : layers)
             for (SkNode ndElm : layerElm)
                 results.add(ndElm);
         return results;
     }
 
     // normal create layers relation
-    public SkGraph createLayerGraph(ArrayList<SkNode> nodes) {
+    public SkGraph createLayerGraph(List<SkNode> nodes) {
         for (SkNode nodeI : nodes) {
             nodeI.setId(nodes.indexOf(nodeI)); // Set the Id of point according to the order in the list
             for (SkNode nodeJ : nodes)
@@ -111,40 +113,33 @@ public class TopKGSkyline {
         return graph;
     }
 
-    public PriorityQueue<SkGroup> getTopKGroups(SkGraph graph) {
-        // lambda express: Descending order, if a > b, return negative, a stays before b ; else if a < b, return positive, a stays after b
-        PriorityQueue<SkGroup> topKGroups = new PriorityQueue<SkGroup>(topK, Collections.reverseOrder());
-        Collections.sort(graph.graphLayers.get(0).getLayerNodes()); // sort the top layer of the graph
+    public List<SkGroup> getTopKGroups(SkGraph graph) {
+        TopKGroup topKGroup = new TopKGroup(topK);
+        // PriorityQueue<SkGroup> topKGroups = new PriorityQueue<SkGroup>(topK, Collections.reverseOrder());
+        List<SkNode> firstLayer = graph.graphLayers.get(0).getLayerNodes();
+        Collections.sort(firstLayer); // sort the top layer of the graph
         // TODO: Recursively call the permutation func to merge and calculate the dominates and update the topKGroup structure
+        enumCombination(firstLayer, topK, new SkGroup(), topKGroup);
 
-        return topKGroups;
+        return topKGroup.getTopKGroup();
     }
 
 
-        // Merge two group of points
-    public ArrayList<SkNode> merge(ArrayList<SkNode> a, ArrayList<SkNode> b) {
-        ArrayList<SkNode> result = new ArrayList<SkNode>();
-        int aIdx = 0; int bIdx = 0;
-        SkNode aEle, bEle;
-        while (aIdx < a.size() && bIdx < b.size()) {
-            if ((aEle=a.get(aIdx)).id < (bEle=b.get(bIdx)).id) {
-                result.add(aEle);
-                aIdx++;
-            } else if (aEle.id > bEle.id) {
-                result.add(bEle);
-                bIdx++;
-            } else {
-                result.add(aEle);
-                aIdx++; bIdx++;
-            }
+    private void enumCombination(List<SkNode> nodes4Check, int k, SkGroup groupFound, TopKGroup topKG) {
+        if (k == 0) {
+            topKG.addSkGroup(groupFound);
+            return;
         }
-        // append the rest
-        result.addAll(new ArrayList<SkNode>(aIdx == a.size() ? b.subList(bIdx, b.size()) : a.subList(aIdx, a.size())));
-
-        return result;
+        for (int idx=0; idx<nodes4Check.size(); idx++) {
+            SkNode node = nodes4Check.get(idx);
+            if (node.getDominates() + groupFound.getGroupDominates() <= topKG.getMinDominates())
+                return;
+            SkGroup newGroupFound = new SkGroup(groupFound); // copy of groupFound
+            newGroupFound.addGroupNodes(node);
+            enumCombination(nodes4Check.subList(idx+1, nodes4Check.size()), k-1, newGroupFound, topKG);
+            newGroupFound = null; //  remove the reference of newGroupFound to delete this object
+        }
     }
-
-
 
     public static void main(String[] args) throws FileNotFoundException {
         int gSize = Integer.parseInt(args[0]); // group size
@@ -154,8 +149,8 @@ public class TopKGSkyline {
         // input data
         FileInputStream in = new FileInputStream("testdata");
         Scanner scanner = new Scanner(in);
-        // ArrayList<String> rawData = new ArrayList<String>();
-        ArrayList<Integer[]> data = new ArrayList<Integer[]>();
+        // List<String> rawData = new List<String>();
+        List<Integer[]> data = new ArrayList<Integer[]>();
 
 
         while (scanner.hasNextLine()) {
@@ -188,15 +183,15 @@ public class TopKGSkyline {
         // create layers
         // twoD or higherD for computing layers
         long cStartT = System.nanoTime();
-        //ArrayList<SkNode> layers = test.createLayerNodes(data);
-        ArrayList<SkNode> nodesByLayer = test.createLayerNodes(data); // Construct the nodes in layers
+        //List<SkNode> layers = test.createLayerNodes(data);
+        List<SkNode> nodesByLayer = test.createLayerNodes(data); // Construct the nodes in layers
         long cEndT = System.nanoTime();
         creatLayerTime = creatLayerTime + (cEndT - cStartT);
 
         SkGraph graph = test.createLayerGraph(nodesByLayer);// build the graph: parents and children
 
-        ArrayList<SkNode> nodesBaseline = nodesByLayer;
-        ArrayList<SkNode> nodesTopk = nodesByLayer;
+        List<SkNode> nodesBaseline = nodesByLayer;
+        List<SkNode> nodesTopk = nodesByLayer;
 
         long start1 = System.nanoTime();
         // nodesBaseline

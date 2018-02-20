@@ -1,14 +1,15 @@
 /**
  * Created by mashiru on 2/10/18.
  */
+import java.util.List;
 import java.util.ArrayList;
 
 public class SkNode implements Comparable{
     protected Integer[] val;
     protected int layerIdx;
     protected int id;
-    protected ArrayList<SkNode> parents;
-    protected ArrayList<SkNode> children;
+    protected List<SkNode> parents;
+    protected List<SkNode> children;
 
     public SkNode(int d) {
         this.val = new Integer[d];
@@ -45,13 +46,13 @@ public class SkNode implements Comparable{
         this.layerIdx = layerIdx;
     }
 
-    public ArrayList<SkNode> getParents() {
+    public List<SkNode> getParents() {
         return parents;
     }
 
-    public ArrayList<SkNode> getChildren() {
-        return children;
-    }
+    public List<SkNode> getChildren() { return children; }
+
+    public int getDominates() { return children.size(); }
 
     public int getId() {
         return id;

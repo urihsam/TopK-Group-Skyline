@@ -1,10 +1,11 @@
+import java.util.List;
 import java.util.ArrayList;
 
 /**
  * Created by mashiru on 2/11/18.
  */
 public class SkLayer {
-    protected ArrayList<SkNode> layerNodes;
+    protected List<SkNode> layerNodes;
     protected int layerIdx;
 
     public SkLayer(int idx) {
@@ -19,6 +20,6 @@ public class SkLayer {
     int getLayerIdx() { return layerIdx; }
     void addLayerNodes(SkNode node) { layerNodes.add(node); }
     void addLayerNodes(ArrayList<SkNode> nodes) { layerNodes.addAll(nodes); }
-    ArrayList<SkNode> getLayerNodes() { return layerNodes; }
+    List<SkNode> getLayerNodes() { return layerNodes; }
     int getLayerSize() { return layerNodes.size(); }
 }
