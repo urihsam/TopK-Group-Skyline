@@ -6,16 +6,31 @@ import java.util.ArrayList;
 public class SkGraph {
     protected List<SkLayer> graphLayers;
     protected int graphSize;
-    protected int numOfLayers; // num of layers
-    public SkGraph(int numOfLayers) {
-        graphLayers = new ArrayList<SkLayer>(numOfLayers);
+    public SkGraph() {
+        graphLayers = new ArrayList<SkLayer>();
         graphSize = 0;
-        this.numOfLayers = numOfLayers;
     }
-    void addGraphLayer(SkLayer layer){
+
+    public void addGraphLayer(SkLayer layer){
+        int numOfLayer = getNumOfLayers();
+        int layerIdx = layer.getLayerIdx();
+        if ( numOfLayer <= layerIdx) {
+            for (int idx=numOfLayer; idx<=layerIdx; idx++) // initialize SkLayer and add into graphLayers
+                graphLayers.add(new SkLayer(idx));
+        }
         graphLayers.set(layer.getLayerIdx(), layer);
     }
-    SkLayer getGraphLayer(int layerIdx) {
+
+    public void addGraphLayerNode(int layerIdx, SkNode node) {
+        getGraphLayer(layerIdx).addLayerNodes(node);
+        graphSize += 1;
+    }
+
+    public SkLayer getGraphLayer(int layerIdx) {
         return graphLayers.get(layerIdx);
     }
+
+    public int getNumOfLayers() { return graphLayers.size(); }
+
+    public int getGraphSize() { return graphSize; }
 }

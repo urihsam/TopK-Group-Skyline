@@ -88,17 +88,16 @@ public class TopKGSkyline {
 
     // normal create layers relation
     public SkGraph createLayerGraph(List<SkNode> nodes) {
-        for (SkNode nodeI : nodes) {
+        for (SkNode nodeI : nodes) // add parents and children information
             for (SkNode nodeJ : nodes)
                 if (nodeI != nodeJ)
                     if (isDominate(nodeI.val, nodeJ.val)) {
                         nodeI.children.add(nodeJ);
                         nodeJ.parents.add(nodeI);
                     }
-        }
 
         int layerIdx = -1;
-        SkGraph graph = new SkGraph(nodes.get(nodes.size()).getLayerIdx()+1); // get the layer idx of the last node
+        SkGraph graph = new SkGraph(); // get the layer idx of the last node
         Iterator<SkNode> nodeIter = nodes.iterator();
         while (nodeIter.hasNext()) {
             SkNode pt = nodeIter.next();
@@ -108,9 +107,9 @@ public class TopKGSkyline {
             }
             if (layerIdx != pt.getLayerIdx()) {
                 layerIdx = pt.getLayerIdx();
-                graph.addGraphLayer(new SkLayer(pt.getLayerIdx()));
+                graph.addGraphLayer(new SkLayer(layerIdx));
             }
-            graph.getGraphLayer(layerIdx).addLayerNodes(pt);
+            graph.addGraphLayerNode(layerIdx, pt);
         }
         return graph;
     }

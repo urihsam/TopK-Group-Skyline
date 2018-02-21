@@ -16,10 +16,10 @@ public class SkLayer {
         layerIdx = idx;
         layerNodes = nodes;
     }
-    void setLayerIdx(int idx) { layerIdx = idx; }
-    int getLayerIdx() { return layerIdx; }
-    void addLayerNodes(SkNode node) { layerNodes.add(node); }
-    void addLayerNodes(ArrayList<SkNode> nodes) { layerNodes.addAll(nodes); }
-    List<SkNode> getLayerNodes() { return layerNodes; }
-    int getLayerSize() { return layerNodes.size(); }
+    public void setLayerIdx(int idx) { layerIdx = idx; }
+    public int getLayerIdx() { return layerIdx; }
+    public void addLayerNodes(SkNode node) { layerNodes.add(node); }
+    public void addLayerNodes(ArrayList<SkNode> nodes) { layerNodes.addAll(nodes); }
+    public List<SkNode> getLayerNodes() { return layerNodes; }
+    public int getLayerSize() { return layerNodes.size(); }
 }
