@@ -18,21 +18,28 @@ public class SkGroup implements Comparable{
         this.children = new ArrayList<>(another.getChildren());
     }
 
-    public SkGroup(ArrayList<SkNode> nodes) {
-        gNodes = nodes;
+    public SkGroup(List<SkNode> gnodes) {
+        gNodes = gnodes;
         children = new ArrayList<>();
         for (SkNode node: gNodes)
             updateChildrenAndDominates(node);
     }
-    public void addGroupNodes(ArrayList<SkNode> nodes) {
-        gNodes = nodes;
+
+    // before invoking this construct, MAKE SURE that the kids is the merged result for children of gnodes
+    public SkGroup(List<SkNode> gnodes, List<SkNode> kids) {
+        gNodes = gnodes;
+        children = kids;
+    }
+
+    public void addGroupNodes(List<SkNode> gnodes) {
+        gNodes = gnodes;
         for (SkNode node: gNodes)
             updateChildrenAndDominates(node);
     }
 
-    public void addGroupNodes(SkNode node) {
-        gNodes.add(node);
-        updateChildrenAndDominates(node);
+    public void addGroupNodes(SkNode gnode) {
+        gNodes.add(gnode);
+        updateChildrenAndDominates(gnode);
     }
 
     private void updateChildrenAndDominates(SkNode node) {
@@ -73,5 +80,29 @@ public class SkGroup implements Comparable{
     public int compareTo(Object another) {
         /* For Ascending order*/
         return getGroupDominates() - ((SkGroup)another).getGroupDominates();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!SkGroup.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+        final SkGroup other = (SkGroup) obj;
+
+        if (!this.getGroupNodes().equals(other.getGroupNodes())) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        for (SkNode node: gNodes)
+            hash += node.hashCode();
+        return hash;
     }
 }

@@ -119,14 +119,32 @@ public class TopKGSkyline {
         List<SkNode> firstLayer = graph.graphLayers.get(0).getLayerNodes();
         Collections.sort(firstLayer); // sort the top layer of the graph
         // TODO: Recursively call the permutation func to merge and calculate the dominates and update the topKGroup structure
-        enumCombination(firstLayer, topK, new SkGroup(), topKGroup);
-
+        checkCombination(firstLayer, topK, new SkGroup(), topKGroup);
+        checkChildren4TopKG(new ArrayList<SkGroup>(topKGroup.getTopKGroup()), topK, topKGroup);
         return topKGroup.getTopKGroup();
     }
 
+    private void checkChildren4TopKG(List<SkGroup> groups4Check, int k, TopKGroup topKG) {
+        for (int depth=1; depth<=k; depth++)
+            for (SkGroup group: groups4Check) //  check certain group
+                for (SkNode gNode: group.getGroupNodes()) // check certain gnode in the group
+                    for (SkNode nChild: gNode.getChildren()) { // check certain nChild of gNode
+                        if (nChild.getLayerIdx() == depth) {
+                            if (group.getGroupNodes().containsAll(nChild.getParents())) {
+                                List<SkNode> groupNodesRemain= new ArrayList<SkNode>(group.getGroupNodes());
+                                List<SkNode> groupNodesChecked = new ArrayList<SkNode>(nChild.getParents());
+                                groupNodesRemain.removeAll(groupNodesChecked);
+                                groupNodesChecked.add(nChild);
+                                SkGroup groupFound = new SkGroup(groupNodesChecked, gNode.getChildren());
+                                checkCombination(groupNodesRemain, k-groupNodesChecked.size(), groupFound, topKG);
+                            }
+                        }else if (nChild.getLayerIdx() > depth)
+                            continue; // change to another node, skip the rest children
+                    }
+    }
 
-    private void enumCombination(List<SkNode> nodes4Check, int k, SkGroup groupFound, TopKGroup topKG) {
-        if (k == 0) {
+    private void checkCombination(List<SkNode> nodes4Check, int k, SkGroup groupFound, TopKGroup topKG) {
+        if (k == 0 && !topKG.getTopKGroup().contains(groupFound)) {
             topKG.addSkGroup(groupFound);
             return;
         }
@@ -136,7 +154,7 @@ public class TopKGSkyline {
                 return;
             SkGroup newGroupFound = new SkGroup(groupFound); // copy of groupFound
             newGroupFound.addGroupNodes(node);
-            enumCombination(nodes4Check.subList(idx+1, nodes4Check.size()), k-1, newGroupFound, topKG);
+            checkCombination(nodes4Check.subList(idx+1, nodes4Check.size()), k-1, newGroupFound, topKG);
             newGroupFound = null; //  remove the reference of newGroupFound to delete this object
         }
     }
