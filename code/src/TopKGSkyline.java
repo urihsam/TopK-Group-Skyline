@@ -60,7 +60,7 @@ public class TopKGSkyline {
         layer.add(pt0);
         layers.add(layer);
 
-        // no more than groupSize layers will be used
+        // no more than groupSize layers will be used!
         for (int layerIdx = 1; layerIdx < groupSize; layerIdx++)
             layers.add(new ArrayList<SkNode>()); // add new layer
 
@@ -76,23 +76,25 @@ public class TopKGSkyline {
                 layers.get(pt.getLayerIdx()).add(pt);
         }
 
-        for (List<SkNode> layerElm : layers)
-            for (SkNode ndElm : layerElm)
+        int ID = 0;
+        for (List<SkNode> layerElm : layers) {
+            for (SkNode ndElm : layerElm) {
+                ndElm.setId(ID++); // Set the Id of point according to the order in the list
                 results.add(ndElm);
+            }
+        }
         return results;
     }
 
     // normal create layers relation
     public SkGraph createLayerGraph(List<SkNode> nodes) {
         for (SkNode nodeI : nodes) {
-            nodeI.setId(nodes.indexOf(nodeI)); // Set the Id of point according to the order in the list
             for (SkNode nodeJ : nodes)
-                if (nodeI != nodeJ) {
-                    if (isDominate(nodeJ.val, nodeI.val))
-                        nodeI.parents.add(nodeJ);
-                    else if (isDominate(nodeI.val, nodeJ.val))
+                if (nodeI != nodeJ)
+                    if (isDominate(nodeI.val, nodeJ.val)) {
                         nodeI.children.add(nodeJ);
-                }
+                        nodeJ.parents.add(nodeI);
+                    }
         }
 
         int layerIdx = -1;
@@ -178,7 +180,7 @@ public class TopKGSkyline {
             // rawData.add(sline);
 
             //String[] s = sline.split(",");
-            String[] s = sline.split("	");
+            String[] s = sline.split("  ");
 
             Integer[] line = new Integer[s.length];
             for (int i = 0; i < s.length; i++)
@@ -208,8 +210,8 @@ public class TopKGSkyline {
 
         SkGraph graph = test.createLayerGraph(nodesByLayer);// build the graph: parents and children
 
-        List<SkNode> nodesBaseline = nodesByLayer;
-        List<SkNode> nodesTopk = nodesByLayer;
+        SkGraph graphBaseline = graph;
+        SkGraph graphTopk = graph;
 
         long start1 = System.nanoTime();
         // nodesBaseline
@@ -220,6 +222,7 @@ public class TopKGSkyline {
 
         long start2 = System.nanoTime();
         // nodesTopk
+        List<SkGroup> topKGroups = test.getTopKGroups(graphTopk);
         long end2 = System.nanoTime();
         timeSumTopK = timeSumTopK + end2 - start2;
 

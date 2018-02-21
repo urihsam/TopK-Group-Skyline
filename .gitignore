@@ -9,6 +9,7 @@
 **/*.old/*
 **/.DS_Store
 **/code/.idea/*
+**/code/*.class
 **/.vscode/*
 
 # Byte-compiled / optimized / DLL files
