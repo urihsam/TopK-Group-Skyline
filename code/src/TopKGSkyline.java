@@ -39,10 +39,8 @@ public class TopKGSkyline {
     }
 
 
-    // create layers: Not brute force & Higher dimension
-    public List<SkNode> createLayerNodes(List<Integer[]> data) {
-        List<SkNode> results = new ArrayList<SkNode>();
-
+    // create graph: Not brute force & Higher dimension
+    public SkGraph createLayerGraph(List<Integer[]> data) {
         // sort the points
         Collections.sort(data, new Comparator<Object>() {
             @Override
@@ -53,66 +51,44 @@ public class TopKGSkyline {
             public int compare(Integer[] o1, Integer[] o2) { return (o1[0] < o2[0] ? -1 : (o1[0] == o2[0] ? 0 : 1)); }
         });
 
-        // first point belongs to the first layer
-        SkNode pt0 = new SkNode(data.get(0), 0);
-        List<List<SkNode>> layers = new ArrayList<List<SkNode>>();
-        List<SkNode> layer = new ArrayList<SkNode>();
-        layer.add(pt0);
-        layers.add(layer);
 
-        // no more than groupSize layers will be used!
-        for (int layerIdx = 1; layerIdx < groupSize; layerIdx++)
-            layers.add(new ArrayList<SkNode>()); // add new layer
+        SkNode pt0 = new SkNode(data.get(0), 0); // first point belongs to the first layer
+        SkGraph graph = new SkGraph(groupSize);
+        graph.addGraphLayerNode(pt0); // add pt0 to layer0
 
         for (int ptIdx = 1; ptIdx < data.size(); ptIdx++) {
             SkNode pt = new SkNode(data.get(ptIdx), 0);
             int maxLayer = -1;
-            for (List<SkNode> layerElm : layers) // for each layer in all layers
-                for (SkNode ndElm : layerElm) // for each node in this layer
-                    if (isDominate(ndElm.val, pt.val) && ndElm.getLayerIdx() > maxLayer)
-                        maxLayer = ndElm.getLayerIdx();
-            pt.setLayerIdx(++maxLayer);
-            if (pt.getLayerIdx() < groupSize)
-                layers.get(pt.getLayerIdx()).add(pt);
+            // TODO: reverse iteration
+            for (SkLayer layerElm : graph.getGraphLayers()) // for each layer in all layers
+                for (SkNode ndElm : layerElm.getLayerNodes()) { // for each node in this layer
+                    if (isDominate(ndElm.getVal(), pt.getVal())) {
+                        if (ndElm.getLayerIdx() > maxLayer)
+                            maxLayer = ndElm.getLayerIdx();
+                        if (ndElm.getLayerIdx() < groupSize) // only node locates in first groupSize layer need to store children
+                            ndElm.addChild(pt);
+                        if (maxLayer < groupSize - 1) // only node locates in first groupSize layer need to store parents
+                            pt.addParent(ndElm);
+
+                    } else if (isDominate(pt.getVal(), ndElm.getVal())) {
+                        if (maxLayer < groupSize - 1) // only node locates in first groupSize layer need to store children
+                            pt.addChild(ndElm);
+                        if (ndElm.getLayerIdx() < groupSize)
+                            ndElm.addParent(pt); // only node locates in first groupSize layer need to store parents
+                    }
+                }
+            pt.setLayerIdx(maxLayer<groupSize?maxLayer+1:groupSize); // set layer index
+            graph.addGraphLayerNode(pt);
         }
 
         int ID = 0;
-        for (List<SkNode> layerElm : layers) {
-            for (SkNode ndElm : layerElm) {
-                ndElm.setId(ID++); // Set the Id of point according to the order in the list
-                results.add(ndElm);
-            }
-        }
-        return results;
-    }
+        for (SkLayer layerElm : graph.getGraphLayers()) // for each layer in all layers
+            for (SkNode ndElm : layerElm.getLayerNodes()) // for each node in this layer
+                ndElm.setId(ID++);
 
-    // normal create layers relation
-    public SkGraph createLayerGraph(List<SkNode> nodes) {
-        for (SkNode nodeI : nodes) // add parents and children information
-            for (SkNode nodeJ : nodes)
-                if (nodeI != nodeJ)
-                    if (isDominate(nodeI.val, nodeJ.val)) {
-                        nodeI.children.add(nodeJ);
-                        nodeJ.parents.add(nodeI);
-                    }
-
-        int layerIdx = -1;
-        SkGraph graph = new SkGraph(); // get the layer idx of the last node
-        Iterator<SkNode> nodeIter = nodes.iterator();
-        while (nodeIter.hasNext()) {
-            SkNode pt = nodeIter.next();
-            if (pt.parents.size() > groupSize - 1) {
-                // nodeIter.remove(); // Removes from the underlying collection the last element returned by this iterator (optional operation).
-                continue;
-            }
-            if (layerIdx != pt.getLayerIdx()) {
-                layerIdx = pt.getLayerIdx();
-                graph.addGraphLayer(new SkLayer(layerIdx));
-            }
-            graph.addGraphLayerNode(layerIdx, pt);
-        }
         return graph;
     }
+
 
     public List<SkGroup> getTopKGroups(SkGraph graph) {
         TopKGroup topKGroup = new TopKGroup(topK);
@@ -202,12 +178,11 @@ public class TopKGSkyline {
         // create layers
         // twoD or higherD for computing layers
         long cStartT = System.nanoTime();
-        //List<SkNode> layers = test.createLayerNodes(data);
-        List<SkNode> nodesByLayer = test.createLayerNodes(data); // Construct the nodes in layers
+        SkGraph graph = test.createLayerGraph(data);// build the graph
         long cEndT = System.nanoTime();
         creatLayerTime = creatLayerTime + (cEndT - cStartT);
 
-        SkGraph graph = test.createLayerGraph(nodesByLayer);// build the graph: parents and children
+
 
         SkGraph graphBaseline = graph;
         SkGraph graphTopk = graph;

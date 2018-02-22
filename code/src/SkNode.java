@@ -29,6 +29,7 @@ public class SkNode implements Comparable{
         this.children = new ArrayList<SkNode>();
     }
 
+
     public Integer[] getVal() {
         return val;
     }
@@ -50,7 +51,11 @@ public class SkNode implements Comparable{
         return parents;
     }
 
+    public void addParent(SkNode parent) { parents.add(parent); }
+
     public List<SkNode> getChildren() { return children; }
+
+    public void addChild(SkNode child) { children.add(child); }
 
     public int getDominates() { return children.size(); }
 
