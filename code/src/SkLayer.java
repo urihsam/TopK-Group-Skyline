@@ -18,7 +18,9 @@ public class SkLayer {
     }
     public void setLayerIdx(int idx) { layerIdx = idx; }
     public int getLayerIdx() { return layerIdx; }
-    public void addLayerNodes(SkNode node) { layerNodes.add(node); }
+    public void addLayerNodes(SkNode node) {
+        layerNodes.add(node);
+    }
     public void addLayerNodes(ArrayList<SkNode> nodes) { layerNodes.addAll(nodes); }
     public List<SkNode> getLayerNodes() { return layerNodes; }
     public int getLayerSize() { return layerNodes.size(); }

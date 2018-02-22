@@ -102,7 +102,7 @@ public class TopKGSkyline {
         while (nodeIter.hasNext()) {
             SkNode pt = nodeIter.next();
             if (pt.parents.size() > groupSize - 1) {
-                nodeIter.remove(); // Removes from the underlying collection the last element returned by this iterator (optional operation).
+                // nodeIter.remove(); // Removes from the underlying collection the last element returned by this iterator (optional operation).
                 continue;
             }
             if (layerIdx != pt.getLayerIdx()) {
