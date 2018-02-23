@@ -79,7 +79,7 @@ public class SkGroup implements Comparable{
     @Override
     public int compareTo(Object another) {
         /* For Ascending order*/
-        return getGroupDominates() - ((SkGroup)another).getGroupDominates();
+        return ((SkGroup)another).getGroupDominates() - getGroupDominates();
     }
 
     @Override
