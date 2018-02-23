@@ -76,10 +76,17 @@ public class SkGroup implements Comparable{
         return result;
     }
 
+    public void print() {
+        System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominates: " + getGroupDominates() +"==========");
+        System.out.println("Group node info:");
+        for (SkNode node: gNodes)
+            node.print();
+    }
+
     @Override
     public int compareTo(Object another) {
         /* For Ascending order*/
-        return ((SkGroup)another).getGroupDominates() - getGroupDominates();
+        return getGroupDominates() - ((SkGroup)another).getGroupDominates();
     }
 
     @Override

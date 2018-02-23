@@ -98,7 +98,9 @@ public class TopKGSkyline {
         Collections.sort(firstLayer, Collections.reverseOrder()); // sort the top layer of the graph
         // TODO: Recursively call the permutation func to merge and calculate the dominates and update the topKGroup structure
         checkCombination(firstLayer, groupSize, new SkGroup(), topKGroup);
+        // topKGroup.print();
         checkChildren4TopKG(new ArrayList<SkGroup>(topKGroup.getTopKGroup()), groupSize, topKGroup);
+        // topKGroup.print();
         return topKGroup.getTopKGroup();
     }
 

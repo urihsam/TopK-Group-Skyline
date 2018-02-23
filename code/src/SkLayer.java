@@ -25,4 +25,11 @@ public class SkLayer {
     public List<SkNode> getLayerNodes() { return layerNodes; }
     public SkNode getLayerNode(int nodeIdx) { return layerNodes.get(nodeIdx); }
     public int getLayerSize() { return layerNodes.size(); }
+
+    public void print() {
+        System.out.println("\n==========Layer index: "+ layerIdx + "==========");
+        System.out.println("Layer nodes info:");
+        for (SkNode node: layerNodes)
+            node.print();
+    }
 }

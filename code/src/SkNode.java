@@ -67,6 +67,14 @@ public class SkNode implements Comparable{
         this.id = id;
     }
 
+    public void print() {
+        System.out.println("\n----------Node ID: " + id + " Layer index: "+ layerIdx+"----------");
+        System.out.print("Value info: [ ");
+        for (int value: val)
+            System.out.print(value + " ");
+        System.out.println("]");
+    }
+
     @Override
     public int compareTo(Object other) {
         /* For Ascending order*/
