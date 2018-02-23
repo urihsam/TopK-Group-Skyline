@@ -30,6 +30,10 @@ public class SkGraph {
         return graphLayers.get(layerIdx);
     }
 
+    public int getGraphLayerSize(int layerIdx) {
+        return graphLayers.get(layerIdx).getLayerSize();
+    }
+
     public int getNumOfLayers() { return graphLayers.size(); }
 
     public int getGraphSize() { return graphSize; }

@@ -56,36 +56,39 @@ public class TopKGSkyline {
         SkGraph graph = new SkGraph(groupSize);
         graph.addGraphLayerNode(pt0); // add pt0 to layer0
 
+        // step one: create the layer structure in graph
         for (int ptIdx = 1; ptIdx < data.size(); ptIdx++) {
             SkNode pt = new SkNode(data.get(ptIdx), 0);
             int maxLayer = -1;
-            // TODO: reverse iteration
-            for (SkLayer layerElm : graph.getGraphLayers()) // for each layer in all layers
-                for (SkNode ndElm : layerElm.getLayerNodes()) { // for each node in this layer
-                    if (isDominate(ndElm.getVal(), pt.getVal())) {
+            for (SkLayer layerElm: graph.getGraphLayers())  // for each layer in all layers
+                for (SkNode ndElm : layerElm.getLayerNodes()) // for each node in this layer
+                    if (isDominate(ndElm.getVal(), pt.getVal()))
                         if (ndElm.getLayerIdx() > maxLayer)
                             maxLayer = ndElm.getLayerIdx();
-                        if (ndElm.getLayerIdx() < groupSize) // only node locates in first groupSize layer need to store children
-                            ndElm.addChild(pt);
-                        if (maxLayer < groupSize - 1) // only node locates in first groupSize layer need to store parents
-                            pt.addParent(ndElm);
-
-                    } else if (isDominate(pt.getVal(), ndElm.getVal())) {
-                        if (maxLayer < groupSize - 1) // only node locates in first groupSize layer need to store children
-                            pt.addChild(ndElm);
-                        if (ndElm.getLayerIdx() < groupSize)
-                            ndElm.addParent(pt); // only node locates in first groupSize layer need to store parents
-                    }
-                }
             pt.setLayerIdx(maxLayer<groupSize?maxLayer+1:groupSize); // set layer index
             graph.addGraphLayerNode(pt);
         }
 
+        // step two: set IDs following the order in layers
         int ID = 0;
         for (SkLayer layerElm : graph.getGraphLayers()) // for each layer in all layers
             for (SkNode ndElm : layerElm.getLayerNodes()) // for each node in this layer
                 ndElm.setId(ID++);
 
+        // step three: set parents and children
+        for (int layerIdx=0; layerIdx<graph.getNumOfLayers()-1; layerIdx++) { // iterate each layer except the last one
+            SkLayer currLayer = graph.getGraphLayer(layerIdx);
+            for (SkNode currNode: currLayer.getLayerNodes()) // update each node in the current layer
+                for (int searchLayerIdx=layerIdx+1; searchLayerIdx<graph.getNumOfLayers(); searchLayerIdx++) { // start searching from the next layer of current
+                    SkLayer searchLayer = graph.getGraphLayer(searchLayerIdx);
+                    for (SkNode searchNode: searchLayer.getLayerNodes()) // look for each node in the search layer
+                        if (isDominate(currNode.getVal(), searchNode.getVal())) {
+                            currNode.addChild(searchNode);
+                            if (searchNode.getLayerIdx() < groupSize)
+                                searchNode.addParent(currNode);
+                        }
+                }
+        }
         return graph;
     }
 
@@ -94,44 +97,45 @@ public class TopKGSkyline {
         TopKGroup topKGroup = new TopKGroup(topK);
         // PriorityQueue<SkGroup> topKGroups = new PriorityQueue<SkGroup>(topK, Collections.reverseOrder());
         List<SkNode> firstLayer = graph.graphLayers.get(0).getLayerNodes();
-        Collections.sort(firstLayer); // sort the top layer of the graph
+        Collections.sort(firstLayer, Collections.reverseOrder()); // sort the top layer of the graph
         // TODO: Recursively call the permutation func to merge and calculate the dominates and update the topKGroup structure
-        checkCombination(firstLayer, topK, new SkGroup(), topKGroup);
-        checkChildren4TopKG(new ArrayList<SkGroup>(topKGroup.getTopKGroup()), topK, topKGroup);
+        checkCombination(firstLayer, groupSize, new SkGroup(), topKGroup);
+        checkChildren4TopKG(new ArrayList<SkGroup>(topKGroup.getTopKGroup()), groupSize, topKGroup);
         return topKGroup.getTopKGroup();
     }
 
-    private void checkChildren4TopKG(List<SkGroup> groups4Check, int k, TopKGroup topKG) {
-        for (int depth=1; depth<=k; depth++)
+    private void checkChildren4TopKG(List<SkGroup> groups4Check, int g, TopKGroup topKG) {
+        for (int depth=1; depth<g; depth++)
             for (SkGroup group: groups4Check) //  check certain group
                 for (SkNode gNode: group.getGroupNodes()) // check certain gnode in the group
                     for (SkNode nChild: gNode.getChildren()) { // check certain nChild of gNode
                         if (nChild.getLayerIdx() == depth) {
-                            if (group.getGroupNodes().containsAll(nChild.getParents())) {
-                                List<SkNode> groupNodesRemain= new ArrayList<SkNode>(group.getGroupNodes());
-                                List<SkNode> groupNodesChecked = new ArrayList<SkNode>(nChild.getParents());
-                                groupNodesRemain.removeAll(groupNodesChecked);
-                                groupNodesChecked.add(nChild);
-                                SkGroup groupFound = new SkGroup(groupNodesChecked, gNode.getChildren());
-                                checkCombination(groupNodesRemain, k-groupNodesChecked.size(), groupFound, topKG);
-                            }
+                            if (nChild.getParents().size() < groupSize)
+                                if (group.getGroupNodes().containsAll(nChild.getParents())) {
+                                    List<SkNode> groupNodesRemain= new ArrayList<SkNode>(group.getGroupNodes());
+                                    List<SkNode> groupNodesChecked = new ArrayList<SkNode>(nChild.getParents());
+                                    groupNodesRemain.removeAll(groupNodesChecked);
+                                    groupNodesChecked.add(nChild);
+                                    SkGroup groupFound = new SkGroup(groupNodesChecked, gNode.getChildren());
+                                    checkCombination(groupNodesRemain, g-groupNodesChecked.size(), groupFound, topKG);
+                                }
                         }else if (nChild.getLayerIdx() > depth)
-                            continue; // change to another node, skip the rest children
+                            break; // change to another node, skip the rest children
                     }
     }
 
-    private void checkCombination(List<SkNode> nodes4Check, int k, SkGroup groupFound, TopKGroup topKG) {
-        if (k == 0 && !topKG.getTopKGroup().contains(groupFound)) {
+    private void checkCombination(List<SkNode> nodes4Check, int g, SkGroup groupFound, TopKGroup topKG) {
+        if (g == 0 && !topKG.getTopKGroup().contains(groupFound)) {
             topKG.addSkGroup(groupFound);
             return;
         }
         for (int idx=0; idx<nodes4Check.size(); idx++) {
             SkNode node = nodes4Check.get(idx);
-            if (node.getDominates() + groupFound.getGroupDominates() <= topKG.getMinDominates())
+            if (topKG.getTopKGroupSize() == topK && node.getDominates() + groupFound.getGroupDominates() <= topKG.getMinDominates())
                 return;
             SkGroup newGroupFound = new SkGroup(groupFound); // copy of groupFound
             newGroupFound.addGroupNodes(node);
-            checkCombination(nodes4Check.subList(idx+1, nodes4Check.size()), k-1, newGroupFound, topKG);
+            checkCombination(nodes4Check.subList(idx+1, nodes4Check.size()), g-1, newGroupFound, topKG);
             newGroupFound = null; //  remove the reference of newGroupFound to delete this object
         }
     }

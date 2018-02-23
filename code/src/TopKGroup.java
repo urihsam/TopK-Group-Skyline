@@ -18,6 +18,7 @@ public class TopKGroup {
     }
 
     public List<SkGroup> getTopKGroup() { return new ArrayList<SkGroup>(topKGroup); }
+    public int getTopKGroupSize() { return topKGroup.size(); }
     public void addSkGroup(SkGroup group) {
         topKGroup.add(group);
     }
