@@ -3,11 +3,7 @@
  */
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class TopKGSkyline {
@@ -96,11 +92,13 @@ public class TopKGSkyline {
         // PriorityQueue<SkGroup> topKGroups = new PriorityQueue<SkGroup>(topK, Collections.reverseOrder());
         List<SkNode> firstLayer = graph.graphLayers.get(0).getLayerNodes();
         Collections.sort(firstLayer, Collections.reverseOrder()); // sort the top layer of the graph
-        // TODO: Recursively call the permutation func to merge and calculate the dominates and update the topKGroup structure
-        checkCombination(firstLayer, groupSize, new SkGroup(), topKGroup);
-        // topKGroup.print();
-        checkChildren4TopKG(new ArrayList<SkGroup>(topKGroup.getTopKGroup()), groupSize, topKGroup);
-        // topKGroup.print();
+        // checkCombination(firstLayer, groupSize, new SkGroup(), topKGroup);
+        checkPostCombination(firstLayer, new GroupCandidates(groupSize), topKGroup);
+        topKGroup.print();
+        List<SkGroup> groups4Check = new ArrayList<SkGroup>(topKGroup.getTopKGroup());
+        Collections.reverse(groups4Check);
+        checkChildren4TopKG(groups4Check, groupSize, topKGroup);
+        topKGroup.print();
         return topKGroup.getTopKGroup();
     }
 
@@ -117,13 +115,15 @@ public class TopKGSkyline {
                                     groupNodesRemain.removeAll(groupNodesChecked);
                                     groupNodesChecked.add(nChild);
                                     SkGroup groupFound = new SkGroup(groupNodesChecked, gNode.getChildren());
-                                    checkCombination(groupNodesRemain, g-groupNodesChecked.size(), groupFound, topKG);
+                                    // checkCombination(groupNodesRemain, g-groupNodesChecked.size(), groupFound, topKG);
+                                    checkPostCombination(groupNodesRemain, new GroupCandidates(groupFound, g), topKG);
                                 }
                         }else if (nChild.getLayerIdx() > depth)
                             break; // change to another node, skip the rest children
                     }
     }
 
+    // Pre-combine, subgroup is combined first, then try to look for the rest
     private void checkCombination(List<SkNode> nodes4Check, int g, SkGroup groupFound, TopKGroup topKG) {
         if (g == 0 && !topKG.getTopKGroup().contains(groupFound)) {
             topKG.addSkGroup(groupFound);
@@ -137,6 +137,29 @@ public class TopKGSkyline {
             newGroupFound.addGroupNodes(node);
             checkCombination(nodes4Check.subList(idx+1, nodes4Check.size()), g-1, newGroupFound, topKG);
             newGroupFound = null; //  remove the reference of newGroupFound to delete this object
+        }
+    }
+
+    private void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG) {
+        if (candidates.getNumOfCandidates() == candidates.getMaxSize()) {
+            int minDominates = topKG.getMinDominates();
+            SkGroup groupFound = new SkGroup(new ArrayList<>(candidates.getGroupDeque())); // finely calculate
+            if (topKG.getTopKGroupSize() != topK || (groupFound.getGroupDominates() > minDominates && !topKG.getTopKGroup().contains(groupFound)))
+                topKG.addSkGroup(groupFound);
+            return;
+        }
+        for (int nIdx=0; nIdx<nodes4Check.size(); nIdx++) {
+            SkNode currNode = nodes4Check.get(nIdx);
+            if (candidates.getNumOfCandidates() == candidates.getMaxSize()-1) {
+                int minDominates = topKG.getMinDominates();
+                // topKG is full and rough result is not larger than the min of the topKG
+                if (topKG.getTopKGroupSize() == topK && currNode.getDominates() + candidates.getTotalChilldren() <= minDominates)
+                    continue;
+            }
+            // push the currNode as a candidate
+            candidates.pushGroupNode(currNode);
+            checkPostCombination(nodes4Check.subList(nIdx + 1, nodes4Check.size()), candidates, topKG);
+            candidates.popGroupNode();
         }
     }
 
