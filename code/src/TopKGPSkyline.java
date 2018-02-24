@@ -103,7 +103,7 @@ public class TopKGPSkyline {
         return topKGroup.getTopKGroup();
     }
 
-    private void checkChildren4TopKG(List<SkGroup> groups4Check, int g, TopKGroup topKG) {
+    protected void checkChildren4TopKG(List<SkGroup> groups4Check, int g, TopKGroup topKG) {
         for (int depth=1; depth<g; depth++)
             for (SkGroup group: groups4Check) //  check certain group
                 for (SkNode gNode: group.getGroupNodes()) // check certain gnode in the group
@@ -125,7 +125,7 @@ public class TopKGPSkyline {
     }
 
     // Pre-combine, subgroup is combined first, then try to look for the rest
-    private void checkCombination(List<SkNode> nodes4Check, int g, SkGroup groupFound, TopKGroup topKG) {
+    protected void checkCombination(List<SkNode> nodes4Check, int g, SkGroup groupFound, TopKGroup topKG) {
         if (g == 0 && !topKG.getTopKGroup().contains(groupFound)) {
             topKG.addSkGroup(groupFound);
             return;
@@ -142,11 +142,11 @@ public class TopKGPSkyline {
     }
 
     // Post-combine, first pick nodes by order, then try to group them when there are number of nodes picked
-    private void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG) {
+    protected void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG) {
         checkPostCombination(nodes4Check, candidates, topKG, false, null);
     }
 
-    private void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG, boolean universe, List<SkGroup> universeGroups) {
+    protected void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG, boolean universe, List<SkGroup> universeGroups) {
         if (candidates.getNumOfCandidates() == candidates.getMaxSize()) {
             int minDominates = topKG.getMinDominates();
             SkGroup groupFound = new SkGroup(new ArrayList<>(candidates.getGroupDeque())); // finely calculate
@@ -171,13 +171,9 @@ public class TopKGPSkyline {
         }
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-        int gSize = Integer.parseInt(args[0]); // group size
-        int topK = Integer.parseInt(args[1]); // top k
-        TopKGPSkyline test = new TopKGPSkyline(gSize, topK);
-
+    public static List<Integer[]> readData(String fileName) throws FileNotFoundException{
         // input data
-        FileInputStream in = new FileInputStream("testdata");
+        FileInputStream in = new FileInputStream(fileName);
         Scanner scanner = new Scanner(in);
         // List<String> rawData = new List<String>();
         List<Integer[]> data = new ArrayList<Integer[]>();
@@ -200,11 +196,14 @@ public class TopKGPSkyline {
         }
         // rawData.clear();
         scanner.close();
+        return data;
+    }
 
-        // input groupSize, groupSize is the group size
-        // Scanner input = new Scanner(System.in);
-        // test.setK(input.nextInt());
-        // input.close();
+    public static void main(String[] args) throws FileNotFoundException {
+        int gSize = Integer.parseInt(args[0]); // group size
+        int topK = Integer.parseInt(args[1]); // top k
+        TopKGPSkyline testGP = new TopKGPSkyline(gSize, topK);
+        List<Integer[]> data = readData("testdata");
 
         long timeSumBaseline = 0;
         long timeSumTopK = 0;
@@ -213,7 +212,7 @@ public class TopKGPSkyline {
         // create layers
         // twoD or higherD for computing layers
         long cStartT = System.nanoTime();
-        SkGraph graph = test.createLayerGraph(data);// build the graph
+        SkGraph graph = testGP.createLayerGraph(data);// build the graph
         long cEndT = System.nanoTime();
         creatGraphTime = creatGraphTime + (cEndT - cStartT);
 
@@ -223,22 +222,19 @@ public class TopKGPSkyline {
         SkGraph graphTopk = graph;
 
         long start1 = System.nanoTime();
-        List<SkGroup> baselineGroups = test.getTopKGroups(graphBaseline, true, silent);
+        List<SkGroup> baselineGroups = testGP.getTopKGroups(graphBaseline, true, silent);
         long end1 = System.nanoTime();
         timeSumBaseline = timeSumBaseline + end1 - start1;
 
-        System.out.println("Baseline Time:      " + timeSumBaseline);
+        System.out.println("Baseline                    Time: " + timeSumBaseline);
 
         long start2 = System.nanoTime();
         // nodesTopk
-        List<SkGroup> topKGroups = test.getTopKGroups(graphTopk, false, silent);
+        List<SkGroup> topKGroups = testGP.getTopKGroups(graphTopk, false, silent);
         long end2 = System.nanoTime();
         timeSumTopK = timeSumTopK + end2 - start2;
 
-        System.out.println("TopK GSkyline Time: " + timeSumTopK);
-
-
-
+        System.out.println("TopK Group-Point Skyline    Time: " + timeSumTopK);
 
     }
 }
