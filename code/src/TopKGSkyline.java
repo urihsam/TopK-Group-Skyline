@@ -87,18 +87,19 @@ public class TopKGSkyline {
     }
 
 
-    public List<SkGroup> getTopKGroups(SkGraph graph) {
+    public List<SkGroup> getTopKGroups(SkGraph graph, boolean universe, boolean silent) {
         TopKGroup topKGroup = new TopKGroup(topK);
         // PriorityQueue<SkGroup> topKGroups = new PriorityQueue<SkGroup>(topK, Collections.reverseOrder());
         List<SkNode> firstLayer = graph.graphLayers.get(0).getLayerNodes();
         Collections.sort(firstLayer, Collections.reverseOrder()); // sort the top layer of the graph
         // checkCombination(firstLayer, groupSize, new SkGroup(), topKGroup);
-        checkPostCombination(firstLayer, new GroupCandidates(groupSize), topKGroup);
-        topKGroup.print();
-        List<SkGroup> groups4Check = new ArrayList<SkGroup>(topKGroup.getTopKGroup());
+        List<SkGroup> universeGroup = universe?new ArrayList<SkGroup>():null;
+        checkPostCombination(firstLayer, new GroupCandidates(groupSize), topKGroup, universe, universeGroup);
+        if (!silent) topKGroup.print();
+        List<SkGroup> groups4Check = universe?universeGroup:new ArrayList<SkGroup>(topKGroup.getTopKGroup());
         Collections.reverse(groups4Check);
         checkChildren4TopKG(groups4Check, groupSize, topKGroup);
-        topKGroup.print();
+        if (!silent) topKGroup.print();
         return topKGroup.getTopKGroup();
     }
 
@@ -140,10 +141,17 @@ public class TopKGSkyline {
         }
     }
 
+    // Post-combine, first pick nodes by order, then try to group them when there are number of nodes picked
     private void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG) {
+        checkPostCombination(nodes4Check, candidates, topKG, false, null);
+    }
+
+    private void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG, boolean universe, List<SkGroup> universeGroups) {
         if (candidates.getNumOfCandidates() == candidates.getMaxSize()) {
             int minDominates = topKG.getMinDominates();
             SkGroup groupFound = new SkGroup(new ArrayList<>(candidates.getGroupDeque())); // finely calculate
+            if (universe)
+                universeGroups.add(groupFound);
             if (topKG.getTopKGroupSize() != topK || (groupFound.getGroupDominates() > minDominates && !topKG.getTopKGroup().contains(groupFound)))
                 topKG.addSkGroup(groupFound);
             return;
@@ -152,13 +160,13 @@ public class TopKGSkyline {
             SkNode currNode = nodes4Check.get(nIdx);
             if (candidates.getNumOfCandidates() == candidates.getMaxSize()-1) {
                 int minDominates = topKG.getMinDominates();
-                // topKG is full and rough result is not larger than the min of the topKG
+                // If topKG is full and rough result is not larger than the min of the topKG, skip it
                 if (topKG.getTopKGroupSize() == topK && currNode.getDominates() + candidates.getTotalChilldren() <= minDominates)
                     continue;
             }
             // push the currNode as a candidate
             candidates.pushGroupNode(currNode);
-            checkPostCombination(nodes4Check.subList(nIdx + 1, nodes4Check.size()), candidates, topKG);
+            checkPostCombination(nodes4Check.subList(nIdx + 1, nodes4Check.size()), candidates, topKG, universe, universeGroups);
             candidates.popGroupNode();
         }
     }
@@ -200,34 +208,34 @@ public class TopKGSkyline {
 
         long timeSumBaseline = 0;
         long timeSumTopK = 0;
-        long creatLayerTime = 0;
+        long creatGraphTime = 0;
 
         // create layers
         // twoD or higherD for computing layers
         long cStartT = System.nanoTime();
         SkGraph graph = test.createLayerGraph(data);// build the graph
         long cEndT = System.nanoTime();
-        creatLayerTime = creatLayerTime + (cEndT - cStartT);
+        creatGraphTime = creatGraphTime + (cEndT - cStartT);
 
 
-
+        boolean silent = true;
         SkGraph graphBaseline = graph;
         SkGraph graphTopk = graph;
 
         long start1 = System.nanoTime();
-        // nodesBaseline
+        List<SkGroup> baselineGroups = test.getTopKGroups(graphBaseline, true, silent);
         long end1 = System.nanoTime();
         timeSumBaseline = timeSumBaseline + end1 - start1;
 
-        System.out.println("DFS Unit Group Wise Time: " + timeSumBaseline);
+        System.out.println("Baseline Time:      " + timeSumBaseline);
 
         long start2 = System.nanoTime();
         // nodesTopk
-        List<SkGroup> topKGroups = test.getTopKGroups(graphTopk);
+        List<SkGroup> topKGroups = test.getTopKGroups(graphTopk, false, silent);
         long end2 = System.nanoTime();
         timeSumTopK = timeSumTopK + end2 - start2;
 
-        System.out.println("Unit Group Wise     Time: " + timeSumTopK);
+        System.out.println("TopK GSkyline Time: " + timeSumTopK);
 
 
 
