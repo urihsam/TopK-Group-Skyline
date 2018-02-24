@@ -24,6 +24,7 @@ public class GroupCandidates {
     }
 
     public GroupCandidates(GroupCandidates another) {
+        maxSize = another.getMaxSize();
         totalChilldren = another.getTotalChilldren();
         groupDeque = new ArrayDeque<>(another.getGroupDeque());
     }
