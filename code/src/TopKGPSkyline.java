@@ -6,11 +6,11 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 
-public class TopKGSkyline {
+public class TopKGPSkyline {
     protected int groupSize;
     protected int topK;
 
-    public TopKGSkyline(int gSize, int topK) {
+    public TopKGPSkyline(int gSize, int topK) {
         groupSize = gSize;
         this.topK = topK;
     }
@@ -174,7 +174,7 @@ public class TopKGSkyline {
     public static void main(String[] args) throws FileNotFoundException {
         int gSize = Integer.parseInt(args[0]); // group size
         int topK = Integer.parseInt(args[1]); // top k
-        TopKGSkyline test = new TopKGSkyline(gSize, topK);
+        TopKGPSkyline test = new TopKGPSkyline(gSize, topK);
 
         // input data
         FileInputStream in = new FileInputStream("testdata");
