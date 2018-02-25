@@ -13,15 +13,19 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean silent) {
-        List<SkGroup> universeGroups = getUniverseGroups(graph);
-        TopKGroup topKGroup = searchUniverseGroups4TopK(universeGroups);
+        List<SkGroup> universeGroups = getUniverseGroups(graph); // get universe set of groups
+        TopKGroup topKGroup = searchUniverseGroups4TopK(universeGroups); // search for topK
         return topKGroup.getTopKGroup();
     }
 
     protected TopKGroup searchUniverseGroups4TopK(List<SkGroup> universeGroups) {
         TopKGroup topKGroup = new TopKGroup(topK, true);
-        for (SkGroup ugroup: universeGroups) {
-
+        for (SkGroup ugroup: universeGroups) { // for each group in the universe
+            // if topKGroup is full and the maximum size of dominated group of ugroup is smaller than the minimum in the topKGroup, then skip
+            if (topKGroup.getTopKGroupSize() == topK && ugroup.getMaxSizeOfDominatedGroups() < topKGroup.getMinSizeOfDominatedGroups())
+                continue;
+            ugroup.calculateDominatedGroups(); // calculate the dominated groups
+            topKGroup.addSkGroup(ugroup); // add into the topKGroup
         }
         return topKGroup;
     }

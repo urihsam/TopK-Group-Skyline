@@ -76,7 +76,7 @@ public class SkNode implements Comparable {
     }
 
     @Override
-    public int compareTo(Object other) { // used for sorting first layer
+    public int compareTo(Object other) { // used for sorting first layer by size of children
         /* For Ascending order*/
         return this.getChildren().size() - ((SkNode)other).getChildren().size(); // the difference between dominating points
     }
@@ -91,7 +91,7 @@ public class SkNode implements Comparable {
         }
         final SkNode other = (SkNode) obj;
 
-        if (this.id != other.id) {
+        if (this.id != other.getId()) {
             return false;
         }
         return true;
