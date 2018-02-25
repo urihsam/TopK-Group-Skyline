@@ -25,11 +25,16 @@ public class UnitGroup {
     }
 
     private void undateCoverdGroup(SkNode node) {
-        coveredSkGroup.addGroupNodes(node);
         coveredSkGroup.addGroupNodes(node.getParents());
+        coveredSkGroup.addGroupNodes(node);
     }
 
     public SkNode getLastNodeInUnit() { return unitGroupNodes.get(unitGroupNodes.size()-1); }
+
+    public void addUnitGroup(UnitGroup ugroup) {
+        unitGroupNodes.addAll(ugroup.getUnitGroupNodes());
+        coveredSkGroup.addGroupNodes(ugroup.getCoveredSkGroupNodes());
+    }
 
     public void addUnitGroupNodes(SkNode node) {
         unitGroupNodes.add(node);

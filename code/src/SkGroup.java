@@ -13,10 +13,10 @@ public class SkGroup implements Comparable{
         children = new ArrayList<>();
     }
 
-    public SkGroup(SkNode node) {
+    public SkGroup(SkNode gnode) {
         gNodes = new ArrayList<>();
         children = new ArrayList<>();
-        addGroupNodes(node);
+        addGroupNodes(gnode);
     }
 
     public SkGroup(SkGroup another) {
@@ -25,6 +25,7 @@ public class SkGroup implements Comparable{
     }
 
     public SkGroup(List<SkNode> gnodes) {
+        gNodes = new ArrayList<>();
         children = new ArrayList<>();
         addGroupNodes(gnodes);
     }
@@ -36,9 +37,9 @@ public class SkGroup implements Comparable{
     }
 
     public void addGroupNodes(List<SkNode> gnodes) {
-        gNodes = gnodes;
-        for (SkNode node: gNodes)
-            updateChildrenAndDominates(node);
+        gNodes.addAll(gnodes);
+        for (SkNode gnode: gnodes)
+            updateChildrenAndDominates(gnode);
     }
 
     public void addGroupNodes(SkNode gnode) {

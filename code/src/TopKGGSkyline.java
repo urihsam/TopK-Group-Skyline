@@ -14,6 +14,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean silent) {
         TopKGroup topKGroup = new TopKGroup(topK);
         List<SkGroup> universeGroups = genUniverseGroups(graph);
+        
         return topKGroup.getTopKGroup();
     }
 
@@ -32,8 +33,8 @@ public class TopKGGSkyline extends TopKGPSkyline {
                     unitGroups.add(new UnitGroup(currNode)); //  mark the currNode as a unit group and add into the tail set
                     tailSet.add(currNode);
                 } else if (parentsSize == groupSize - 1) { // find one group
-                    SkGroup group = new SkGroup(currNode);
-                    group.addGroupNodes(currNode.getParents()); // add its parents nodes
+                    SkGroup group = new SkGroup(currNode.getParents());
+                    group.addGroupNodes(currNode); // add its parents nodes
                     universeGroups.add(group); // add into the universe set
                 }
             }
@@ -50,8 +51,10 @@ public class TopKGGSkyline extends TopKGPSkyline {
             for (int UIdx=tailSet.indexOf(ugroup.getLastNodeInUnit())+1; UIdx<tailSet.size(); UIdx++) {
                 SkNode checkedNode = tailSet.get(UIdx);
                 if (!ugroup.getCoveredSkGroupNodes().contains(checkedNode)) { // if the unitGroup node is not contained in the covered group nodes
-                    UnitGroup newUgroup = new UnitGroup(ugroup); // copy of ugroup
-                    newUgroup.addUnitGroupNodes(checkedNode); // add the checkedNode into the unit group
+                    /*UnitGroup newUgroup = new UnitGroup(ugroup); // copy of ugroup
+                    newUgroup.addUnitGroupNodes(checkedNode); // add the checkedNode into the unit group*/
+                    UnitGroup newUgroup = new UnitGroup(checkedNode); // new a unit group with a unit group node - checkedNode
+                    newUgroup.addUnitGroup(ugroup); // add unit group
                     if (newUgroup.getCoveredSkGroupSize() < groupSize)
                         newUnitGroups.add(newUgroup); // add the unit group into the list for next recursion
                     else if (newUgroup.getCoveredSkGroupSize() == groupSize)
