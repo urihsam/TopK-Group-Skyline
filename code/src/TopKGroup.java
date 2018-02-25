@@ -20,7 +20,7 @@ public class TopKGroup {
     public int getTopKGroupSize() { return topKGroup.size(); }
     public void addSkGroup(SkGroup group) { // add new SkGroup into the PQ
         if (getTopKGroupSize() == k) {
-            if (topKGroup.peek().getGroupDominates() < group.getGroupDominates()) {
+            if (topKGroup.peek().getGroupDominatedNodes() < group.getGroupDominatedNodes()) {
                 topKGroup.poll();
                 topKGroup.add(group);
             }
@@ -30,7 +30,7 @@ public class TopKGroup {
     public int getMinDominates() {
         if (topKGroup.size() == 0)
             return -1;
-        return topKGroup.peek().getGroupDominates();
+        return topKGroup.peek().getGroupDominatedNodes();
     }
 
     public void print() {

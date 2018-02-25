@@ -13,16 +13,20 @@ public class SkGroup implements Comparable{
         children = new ArrayList<>();
     }
 
+    public SkGroup(SkNode node) {
+        gNodes = new ArrayList<>();
+        children = new ArrayList<>();
+        addGroupNodes(node);
+    }
+
     public SkGroup(SkGroup another) {
         this.gNodes = new ArrayList<>(another.getGroupNodes());
         this.children = new ArrayList<>(another.getChildren());
     }
 
     public SkGroup(List<SkNode> gnodes) {
-        gNodes = gnodes;
         children = new ArrayList<>();
-        for (SkNode node: gNodes)
-            updateChildrenAndDominates(node);
+        addGroupNodes(gnodes);
     }
 
     // before invoking this construct, MAKE SURE that the kids is the merged result for children of gnodes
@@ -45,10 +49,11 @@ public class SkGroup implements Comparable{
     private void updateChildrenAndDominates(SkNode node) {
         children  = merge(children, node.getChildren());
     }
+
     List<SkNode> getGroupNodes() { return gNodes; }
     List<SkNode> getChildren() { return children; }
 
-    public int getGroupDominates() { return children.size(); }
+    public int getGroupDominatedNodes() { return children.size(); }
     public int getGroupSize() { return gNodes.size(); }
 
     // Merge two group of points
@@ -77,7 +82,7 @@ public class SkGroup implements Comparable{
     }
 
     public void print() {
-        System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominates: " + getGroupDominates() +"==========");
+        System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominates: " + getGroupDominatedNodes() +"==========");
         System.out.println("Group node info:");
         for (SkNode node: gNodes)
             node.print();
@@ -86,7 +91,7 @@ public class SkGroup implements Comparable{
     @Override
     public int compareTo(Object another) {
         /* For Ascending order*/
-        return getGroupDominates() - ((SkGroup)another).getGroupDominates();
+        return getGroupDominatedNodes() - ((SkGroup)another).getGroupDominatedNodes();
     }
 
     @Override

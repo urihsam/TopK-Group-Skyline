@@ -57,7 +57,7 @@ public class SkNode implements Comparable{
 
     public void addChild(SkNode child) { children.add(child); }
 
-    public int getDominates() { return children.size(); }
+    public int getDominatedNodes() { return children.size(); }
 
     public int getId() {
         return id;

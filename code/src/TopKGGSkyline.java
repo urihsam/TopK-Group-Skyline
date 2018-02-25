@@ -1,9 +1,7 @@
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
 
 /**
  * Created by mashiru on 2/24/18.
@@ -13,89 +11,56 @@ public class TopKGGSkyline extends TopKGPSkyline {
         super(gSize, topK);
     }
 
-    public List<SkGroup> getTopKGroups(SkGraph graph, boolean universe, boolean silent) {
+    public List<SkGroup> getTopKGroups(SkGraph graph, boolean silent) {
         TopKGroup topKGroup = new TopKGroup(topK);
-        // PriorityQueue<SkGroup> topKGroups = new PriorityQueue<SkGroup>(topK, Collections.reverseOrder());
-        List<SkNode> firstLayer = graph.graphLayers.get(0).getLayerNodes();
-        Collections.sort(firstLayer, Collections.reverseOrder()); // sort the top layer of the graph
-        // checkCombination(firstLayer, groupSize, new SkGroup(), topKGroup);
-        List<SkGroup> universeGroup = universe?new ArrayList<SkGroup>():null;
-        checkPostCombination(firstLayer, new GroupCandidates(groupSize), topKGroup, universe, universeGroup);
-        if (!silent) topKGroup.print();
-        List<SkGroup> groups4Check = universe?universeGroup:new ArrayList<SkGroup>(topKGroup.getTopKGroup());
-        Collections.reverse(groups4Check);
-        checkChildren4TopKG(groups4Check, groupSize, topKGroup);
-        if (!silent) topKGroup.print();
+        List<SkGroup> universeGroups = genUniverseGroups(graph);
         return topKGroup.getTopKGroup();
     }
 
-    protected void checkChildren4TopKG(List<SkGroup> groups4Check, int g, TopKGroup topKG) {
-        for (int depth=1; depth<g; depth++)
-            for (SkGroup group: groups4Check) //  check certain group
-                for (SkNode gNode: group.getGroupNodes()) // check certain gnode in the group
-                    for (SkNode nChild: gNode.getChildren()) { // check certain nChild of gNode
-                        if (nChild.getLayerIdx() == depth) {
-                            if (nChild.getParents().size() < groupSize)
-                                if (group.getGroupNodes().containsAll(nChild.getParents())) {
-                                    List<SkNode> groupNodesRemain= new ArrayList<SkNode>(group.getGroupNodes());
-                                    List<SkNode> groupNodesChecked = new ArrayList<SkNode>(nChild.getParents());
-                                    groupNodesRemain.removeAll(groupNodesChecked);
-                                    groupNodesChecked.add(nChild);
-                                    SkGroup groupFound = new SkGroup(groupNodesChecked, gNode.getChildren());
-                                    // checkCombination(groupNodesRemain, g-groupNodesChecked.size(), groupFound, topKG);
-                                    checkPostCombination(groupNodesRemain, new GroupCandidates(groupFound, g), topKG);
-                                }
-                        }else if (nChild.getLayerIdx() > depth)
-                            break; // change to another node, skip the rest children
-                    }
-    }
-
-    // Pre-combine, subgroup is combined first, then try to look for the rest
-    protected void checkCombination(List<SkNode> nodes4Check, int g, SkGroup groupFound, TopKGroup topKG) {
-        if (g == 0 && !topKG.getTopKGroup().contains(groupFound)) {
-            topKG.addSkGroup(groupFound);
-            return;
-        }
-        for (int idx=0; idx<nodes4Check.size(); idx++) {
-            SkNode node = nodes4Check.get(idx);
-            if (topKG.getTopKGroupSize() == topK && node.getDominates() + groupFound.getGroupDominates() <= topKG.getMinDominates())
-                return;
-            SkGroup newGroupFound = new SkGroup(groupFound); // copy of groupFound
-            newGroupFound.addGroupNodes(node);
-            checkCombination(nodes4Check.subList(idx+1, nodes4Check.size()), g-1, newGroupFound, topKG);
-            newGroupFound = null; //  remove the reference of newGroupFound to delete this object
-        }
-    }
-
-    // Post-combine, first pick nodes by order, then try to group them when there are number of nodes picked
-    protected void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG) {
-        checkPostCombination(nodes4Check, candidates, topKG, false, null);
-    }
-
-    protected void checkPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG, boolean universe, List<SkGroup> universeGroups) {
-        if (candidates.getNumOfCandidates() == candidates.getMaxSize()) {
-            int minDominates = topKG.getMinDominates();
-            SkGroup groupFound = new SkGroup(new ArrayList<>(candidates.getGroupDeque())); // finely calculate
-            if (universe)
-                universeGroups.add(groupFound);
-            if (topKG.getTopKGroupSize() != topK || (groupFound.getGroupDominates() > minDominates && !topKG.getTopKGroup().contains(groupFound)))
-                topKG.addSkGroup(groupFound);
-            return;
-        }
-        for (int nIdx=0; nIdx<nodes4Check.size(); nIdx++) {
-            SkNode currNode = nodes4Check.get(nIdx);
-            if (candidates.getNumOfCandidates() == candidates.getMaxSize()-1) {
-                int minDominates = topKG.getMinDominates();
-                // If topKG is full and rough result is not larger than the min of the topKG, skip it
-                if (topKG.getTopKGroupSize() == topK && currNode.getDominates() + candidates.getTotalChilldren() <= minDominates)
-                    continue;
+    // using group-wise method
+    protected List<SkGroup> genUniverseGroups(SkGraph graph) {
+        List<SkGroup> universeGroups = new ArrayList<>();
+        List<UnitGroup> unitGroups = new ArrayList<>();
+        List<SkNode> tailSet = new ArrayList<>();
+        // start from the groupSize-1 th layer, since the nodes in the next layers must have more than groupSize-1 parents
+        for (int LIdx = groupSize-1; LIdx>=0; LIdx--) {
+            SkLayer currLayer = graph.getGraphLayer(LIdx);
+            for (int NIdx = currLayer.getLayerSize()-1; NIdx>=0; NIdx--) {
+                SkNode currNode = currLayer.getLayerNode(NIdx);
+                int parentsSize = currNode.getParents().size();
+                if (parentsSize < groupSize - 1) {// even the node in current layer still has the prob of having more than groupSize -1 parents
+                    unitGroups.add(new UnitGroup(currNode)); //  mark the currNode as a unit group and add into the tail set
+                    tailSet.add(currNode);
+                } else if (parentsSize == groupSize - 1) { // find one group
+                    SkGroup group = new SkGroup(currNode);
+                    group.addGroupNodes(currNode.getParents()); // add its parents nodes
+                    universeGroups.add(group); // add into the universe set
+                }
             }
-            // push the currNode as a candidate
-            candidates.pushGroupNode(currNode);
-            checkPostCombination(nodes4Check.subList(nIdx + 1, nodes4Check.size()), candidates, topKG, universe, universeGroups);
-            candidates.popGroupNode();
         }
+        searchGroupsByUnit(unitGroups, tailSet, universeGroups);
+        return universeGroups;
     }
+
+    protected void searchGroupsByUnit(List<UnitGroup> unitGroups, List<SkNode> tailSet, List<SkGroup> universeGroups) {
+        if (unitGroups.size() == 0) // no unit groups needs to be search
+            return;
+        List<UnitGroup> newUnitGroups = new ArrayList<>(); // the unit groups for next recursion
+        for (UnitGroup ugroup: unitGroups)
+            for (int UIdx=tailSet.indexOf(ugroup.getLastNodeInUnit())+1; UIdx<tailSet.size(); UIdx++) {
+                SkNode checkedNode = tailSet.get(UIdx);
+                if (!ugroup.getCoveredSkGroupNodes().contains(checkedNode)) { // if the unitGroup node is not contained in the covered group nodes
+                    UnitGroup newUgroup = new UnitGroup(ugroup); // copy of ugroup
+                    newUgroup.addUnitGroupNodes(checkedNode); // add the checkedNode into the unit group
+                    if (newUgroup.getCoveredSkGroupSize() < groupSize)
+                        newUnitGroups.add(newUgroup); // add the unit group into the list for next recursion
+                    else if (newUgroup.getCoveredSkGroupSize() == groupSize)
+                        universeGroups.add(newUgroup.getCoveredSkGroup()); // add the covered group into the universe groups
+                }
+            }
+        searchGroupsByUnit(newUnitGroups, tailSet, universeGroups);
+    }
+
 
     public static void main(String[] args) throws FileNotFoundException {
         int gSize = Integer.parseInt(args[0]); // group size
@@ -120,7 +85,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
 
         long start2 = System.nanoTime();
         // nodesTopk
-        List<SkGroup> topKGroups = testGG.getTopKGroups(graphTopk, true, silent);
+        List<SkGroup> topKGroups = testGG.getTopKGroups(graphTopk, silent);
         long end2 = System.nanoTime();
         timeSumTopK = timeSumTopK + end2 - start2;
 
