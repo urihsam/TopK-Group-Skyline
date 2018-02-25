@@ -1,4 +1,5 @@
 import java.io.FileNotFoundException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,14 +13,21 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean silent) {
-        TopKGroup topKGroup = new TopKGroup(topK);
-        List<SkGroup> universeGroups = genUniverseGroups(graph);
-        
+        List<SkGroup> universeGroups = getUniverseGroups(graph);
+        TopKGroup topKGroup = searchUniverseGroups4TopK(universeGroups);
         return topKGroup.getTopKGroup();
     }
 
+    protected TopKGroup searchUniverseGroups4TopK(List<SkGroup> universeGroups) {
+        TopKGroup topKGroup = new TopKGroup(topK, true);
+        for (SkGroup ugroup: universeGroups) {
+
+        }
+        return topKGroup;
+    }
+
     // using group-wise method
-    protected List<SkGroup> genUniverseGroups(SkGraph graph) {
+    protected List<SkGroup> getUniverseGroups(SkGraph graph) {
         List<SkGroup> universeGroups = new ArrayList<>();
         List<UnitGroup> unitGroups = new ArrayList<>();
         List<SkNode> tailSet = new ArrayList<>();

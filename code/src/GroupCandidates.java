@@ -5,19 +5,19 @@ import java.util.Deque;
  * Created by mashiru on 2/23/18.
  */
 public class GroupCandidates {
-    protected int totalChilldren;
+    protected int totalSizeOfDominatedNodes;
     protected Deque<SkNode> groupDeque;
     protected int maxSize;
 
     public GroupCandidates(int groupSize) {
         maxSize = groupSize;
-        totalChilldren = 0;
+        totalSizeOfDominatedNodes = 0;
         groupDeque = new ArrayDeque<>(maxSize);
     }
 
     public GroupCandidates(SkGroup groupUnit, int groupSize) { // take the whole group as a unit, the dominates of the group as the totalChildren
         maxSize = groupSize;
-        totalChilldren = groupUnit.getGroupDominatedNodes();
+        totalSizeOfDominatedNodes = groupUnit.getSizeOfDominatedNodes();
         groupDeque = new ArrayDeque<>(maxSize);
         for (SkNode node: groupUnit.getGroupNodes())
             groupDeque.addLast(node);
@@ -25,7 +25,7 @@ public class GroupCandidates {
 
     public GroupCandidates(GroupCandidates another) {
         maxSize = another.getMaxSize();
-        totalChilldren = another.getTotalChilldren();
+        totalSizeOfDominatedNodes = another.getTotalSizeOfDominatedNodes();
         groupDeque = new ArrayDeque<>(another.getGroupDeque());
     }
 
@@ -35,17 +35,17 @@ public class GroupCandidates {
 
     public void addGroupNode2Last(SkNode node) {
         groupDeque.addLast(node);
-        totalChilldren += node.getDominatedNodes();
+        totalSizeOfDominatedNodes += node.getSizeOfDominatedNodes();
     }
 
     public void addGroupNode2First(SkNode node) {
         groupDeque.addFirst(node);
-        totalChilldren += node.getDominatedNodes();
+        totalSizeOfDominatedNodes += node.getSizeOfDominatedNodes();
     }
 
     public int getNumOfCandidates() { return groupDeque.size(); }
 
-    public int getTotalChilldren() { return totalChilldren; }
+    public int getTotalSizeOfDominatedNodes() { return totalSizeOfDominatedNodes; }
 
     public Deque<SkNode> getGroupDeque() { return groupDeque; }
 
@@ -57,13 +57,13 @@ public class GroupCandidates {
 
     public SkNode pollLastGroupNode() {
         SkNode node = groupDeque.pollLast();
-        totalChilldren -= node.getDominatedNodes();
+        totalSizeOfDominatedNodes -= node.getSizeOfDominatedNodes();
         return node;
     }
 
     public SkNode pollFirstGroupNode() {
         SkNode node = groupDeque.pollFirst();
-        totalChilldren -= node.getDominatedNodes();
+        totalSizeOfDominatedNodes -= node.getSizeOfDominatedNodes();
         return node;
     }
 

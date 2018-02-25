@@ -4,7 +4,7 @@
 import java.util.List;
 import java.util.ArrayList;
 
-public class SkNode implements Comparable{
+public class SkNode implements Comparable {
     protected Integer[] val;
     protected int layerIdx; // starting from 0
     protected int id;
@@ -57,7 +57,7 @@ public class SkNode implements Comparable{
 
     public void addChild(SkNode child) { children.add(child); }
 
-    public int getDominatedNodes() { return children.size(); }
+    public int getSizeOfDominatedNodes() { return children.size(); }
 
     public int getId() {
         return id;
@@ -76,7 +76,7 @@ public class SkNode implements Comparable{
     }
 
     @Override
-    public int compareTo(Object other) {
+    public int compareTo(Object other) { // used for sorting first layer
         /* For Ascending order*/
         return this.getChildren().size() - ((SkNode)other).getChildren().size(); // the difference between dominating points
     }

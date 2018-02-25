@@ -4,57 +4,79 @@ import java.util.ArrayList;
 /**
  * Created by mashiru on 2/11/18.
  */
-public class SkGroup implements Comparable{
+public class SkGroup { // implements Comparable{
     protected List<SkNode> gNodes;
-    protected List<SkNode> children;
+    protected List<SkNode> dominatedNodes;
+    protected int maxSizeOfDominatedGroups;
+    protected List<SkGroup> dominatedGroups;
 
     public SkGroup() {
         gNodes = new ArrayList<>();
-        children = new ArrayList<>();
+        dominatedNodes = new ArrayList<>();
+        maxSizeOfDominatedGroups = 0;
+        dominatedGroups = new ArrayList<>();
     }
 
     public SkGroup(SkNode gnode) {
         gNodes = new ArrayList<>();
-        children = new ArrayList<>();
+        dominatedNodes = new ArrayList<>();
+        maxSizeOfDominatedGroups = 0;
+        dominatedGroups = new ArrayList<>();
         addGroupNodes(gnode);
     }
 
     public SkGroup(SkGroup another) {
         this.gNodes = new ArrayList<>(another.getGroupNodes());
-        this.children = new ArrayList<>(another.getChildren());
+        this.dominatedNodes = new ArrayList<>(another.getDominatedNodes());
+        this.maxSizeOfDominatedGroups = another.getMaxSizeOfDominatedGroups();
+        this.dominatedGroups = new ArrayList<>(another.getDominatedGroups());
     }
 
     public SkGroup(List<SkNode> gnodes) {
         gNodes = new ArrayList<>();
-        children = new ArrayList<>();
+        dominatedNodes = new ArrayList<>();
+        maxSizeOfDominatedGroups = 0;
+        dominatedGroups = new ArrayList<>();
         addGroupNodes(gnodes);
     }
 
-    // before invoking this construct, MAKE SURE that the kids is the merged result for children of gnodes
-    public SkGroup(List<SkNode> gnodes, List<SkNode> kids) {
+    // before invoking this construct, MAKE SURE that the kids is the merged result for dominatedNodes of gnodes
+    public SkGroup(List<SkNode> gnodes, List<SkNode> dnodes) {
         gNodes = gnodes;
-        children = kids;
+        dominatedNodes = dnodes;
+        maxSizeOfDominatedGroups = 0;
+        dominatedGroups = new ArrayList<>();
     }
 
     public void addGroupNodes(List<SkNode> gnodes) {
         gNodes.addAll(gnodes);
-        for (SkNode gnode: gnodes)
+        maxSizeOfDominatedGroups += 1;
+        for (SkNode gnode: gnodes) {
             updateChildrenAndDominates(gnode);
+            maxSizeOfDominatedGroups *= (gnode.getSizeOfDominatedNodes() + 1);
+        }
+        maxSizeOfDominatedGroups -= 1;
     }
 
     public void addGroupNodes(SkNode gnode) {
         gNodes.add(gnode);
+        maxSizeOfDominatedGroups += 1;
         updateChildrenAndDominates(gnode);
+        maxSizeOfDominatedGroups *= (gnode.getSizeOfDominatedNodes() + 1);
+        maxSizeOfDominatedGroups -= 1;
     }
 
-    private void updateChildrenAndDominates(SkNode node) {
-        children  = merge(children, node.getChildren());
+    protected void updateChildrenAndDominates(SkNode node) {
+        dominatedNodes  = merge(dominatedNodes, node.getChildren());
     }
 
-    List<SkNode> getGroupNodes() { return gNodes; }
-    List<SkNode> getChildren() { return children; }
+    public List<SkNode> getGroupNodes() { return gNodes; }
+    public List<SkNode> getDominatedNodes() { return dominatedNodes; }
+    public int getMaxSizeOfDominatedGroups() { return maxSizeOfDominatedGroups; }
+    public int getSizeOfDominatedGroups() { return dominatedGroups.size(); }
+    public List<SkGroup> getDominatedGroups() { return dominatedGroups; }
 
-    public int getGroupDominatedNodes() { return children.size(); }
+    public int getSizeOfDominatedNodes() { return dominatedNodes.size(); }
     public int getGroupSize() { return gNodes.size(); }
 
     // Merge two group of points
@@ -83,17 +105,14 @@ public class SkGroup implements Comparable{
     }
 
     public void print() {
-        System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominates: " + getGroupDominatedNodes() +"==========");
+        System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominates: " + getSizeOfDominatedNodes() +"==========");
         System.out.println("Group node info:");
         for (SkNode node: gNodes)
             node.print();
     }
 
-    @Override
-    public int compareTo(Object another) {
-        /* For Ascending order*/
-        return getGroupDominatedNodes() - ((SkGroup)another).getGroupDominatedNodes();
-    }
+    /*@Override
+    getGroupDominatedNodes*/
 
     @Override
     public boolean equals(Object obj) {

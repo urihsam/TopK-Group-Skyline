@@ -131,7 +131,7 @@ public class TopKGPSkyline {
         }
         for (int idx=0; idx<nodes4Check.size(); idx++) {
             SkNode node = nodes4Check.get(idx);
-            if (topKG.getTopKGroupSize() == topK && node.getDominatedNodes() + groupFound.getGroupDominatedNodes() <= topKG.getMinDominates())
+            if (topKG.getTopKGroupSize() == topK && node.getSizeOfDominatedNodes() + groupFound.getSizeOfDominatedNodes() <= topKG.getMinSizeOfDominatedNodes())
                 return;
             SkGroup newGroupFound = new SkGroup(groupFound); // copy of groupFound
             newGroupFound.addGroupNodes(node);
@@ -147,20 +147,20 @@ public class TopKGPSkyline {
 
     protected void searchPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG, boolean universe, List<SkGroup> universeGroups) {
         if (candidates.getNumOfCandidates() == candidates.getMaxSize()) {
-            int minDominates = topKG.getMinDominates();
+            int minDominates = topKG.getMinSizeOfDominatedNodes();
             SkGroup groupFound = new SkGroup(new ArrayList<>(candidates.getGroupDeque())); // finely calculate
             if (universe)
                 universeGroups.add(groupFound);
-            if (topKG.getTopKGroupSize() != topK || (groupFound.getGroupDominatedNodes() > minDominates && !topKG.getTopKGroup().contains(groupFound)))
+            if (topKG.getTopKGroupSize() != topK || (groupFound.getSizeOfDominatedNodes() > minDominates && !topKG.getTopKGroup().contains(groupFound)))
                 topKG.addSkGroup(groupFound);
             return;
         }
         for (int nIdx=0; nIdx<nodes4Check.size(); nIdx++) {
             SkNode currNode = nodes4Check.get(nIdx);
             if (candidates.getNumOfCandidates() == candidates.getMaxSize()-1) {
-                int minDominates = topKG.getMinDominates();
+                int minDominates = topKG.getMinSizeOfDominatedNodes();
                 // If topKG is full and rough result is not larger than the min of the topKG, skip it
-                if (topKG.getTopKGroupSize() == topK && currNode.getDominatedNodes() + candidates.getTotalChilldren() <= minDominates)
+                if (topKG.getTopKGroupSize() == topK && currNode.getSizeOfDominatedNodes() + candidates.getTotalSizeOfDominatedNodes() <= minDominates)
                     continue;
             }
             // push the currNode as a candidate
