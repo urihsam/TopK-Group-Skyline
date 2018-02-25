@@ -146,10 +146,17 @@ public class SkGroup { // implements Comparable{
     }
 
     public void print() {
-        System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominates: " + getSizeOfDominatedNodes() +"==========");
+        System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominatedNodes: " + getSizeOfDominatedNodes() +"==========");
         System.out.println("Group node info:");
         for (SkNode node: gNodes)
             node.print();
+    }
+
+    public void printGroups() {
+        System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominatedGroups: " + getSizeOfDominatedGroups() +"==========");
+        System.out.println("Group info:");
+        for (SkGroup group: dominatedGroups)
+            group.print();
     }
 
     /*@Override

@@ -13,16 +13,21 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean silent) {
+        return getTopKGroups(graph, true, silent);
+    }
+
+    public List<SkGroup> getTopKGroups(SkGraph graph, boolean refined, boolean silent) {
         List<SkGroup> universeGroups = getUniverseGroups(graph); // get universe set of groups
-        TopKGroup topKGroup = searchUniverseGroups4TopK(universeGroups); // search for topK
+        TopKGroup topKGroup = searchUniverseGroups4TopK(universeGroups, refined); // search for topK
+        if (!silent) topKGroup.print();
         return topKGroup.getTopKGroup();
     }
 
-    protected TopKGroup searchUniverseGroups4TopK(List<SkGroup> universeGroups) {
+    protected TopKGroup searchUniverseGroups4TopK(List<SkGroup> universeGroups, boolean refined) {
         TopKGroup topKGroup = new TopKGroup(topK, true);
         for (SkGroup ugroup: universeGroups) { // for each group in the universe
             // if topKGroup is full and the maximum size of dominated group of ugroup is smaller than the minimum in the topKGroup, then skip
-            if (topKGroup.getTopKGroupSize() == topK && ugroup.getMaxSizeOfDominatedGroups() < topKGroup.getMinSizeOfDominatedGroups())
+            if (refined && topKGroup.getTopKGroupSize() == topK && ugroup.getMaxSizeOfDominatedGroups() < topKGroup.getMinSizeOfDominatedGroups())
                 continue;
             ugroup.calculateDominatedGroups(); // calculate the dominated groups
             topKGroup.addSkGroup(ugroup); // add into the topKGroup
@@ -96,7 +101,14 @@ public class TopKGGSkyline extends TopKGPSkyline {
 
 
         boolean silent = true;
+        SkGraph graphBaseline = graph;
         SkGraph graphTopk = graph;
+
+        long start1 = System.nanoTime();
+        List<SkGroup> baselineGroups = testGG.getTopKGroups(graphBaseline, false, silent);
+        long end1 = System.nanoTime();
+        timeSumBaseline = timeSumBaseline + end1 - start1;
+        System.out.println("Baseline Group-Point        Time: " + timeSumBaseline);
 
         long start2 = System.nanoTime();
         // nodesTopk

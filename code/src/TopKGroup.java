@@ -72,7 +72,9 @@ public class TopKGroup {
     public void print() {
         System.out.println("\nTop "+ k + " groups");
         System.out.println("Group info:");
-        for (SkGroup group: topKGroup)
-            group.print();
+        for (SkGroup group: topKGroup) {
+            if (forGroup) group.printGroups();
+            else group.print();
+        }
     }
 }

@@ -225,7 +225,7 @@ public class TopKGPSkyline {
         long end1 = System.nanoTime();
         timeSumBaseline = timeSumBaseline + end1 - start1;
 
-        System.out.println("Baseline                    Time: " + timeSumBaseline);
+        System.out.println("Baseline Group-Point        Time: " + timeSumBaseline);
 
         long start2 = System.nanoTime();
         // nodesTopk
