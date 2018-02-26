@@ -1,8 +1,7 @@
 /**
  * Created by mashiru on 2/10/18.
  */
-import java.io.*;
-import java.lang.Math;
+
 import java.util.*;
 
 
@@ -108,6 +107,7 @@ public class TopKGPSkyline {
 
 
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean universe, boolean silent) {
+        System.out.println("Group-Point getTopKGroups");
         TopKGroup topKGroup = new TopKGroup(topK);
         List<SkNode> firstLayer = graph.graphLayers.get(0).getLayerNodes();
         Collections.sort(firstLayer, Collections.reverseOrder()); // sort the top layer of the graph
@@ -191,6 +191,7 @@ public class TopKGPSkyline {
     }
 
     public static void main(String[] args) {
+        Experiment experiment = new Experiment("GP");
         if (args.length > 0) { // with arguments
             String spliter = "  ";
             String dir = "../data/";
@@ -199,7 +200,7 @@ public class TopKGPSkyline {
             int dims = Integer.parseInt(args[2]); // dimensions
             int numOfPts = Integer.parseInt(args[3]); // the exponent X of 1eX
 
-            argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
+            experiment.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
@@ -208,97 +209,14 @@ public class TopKGPSkyline {
             int[] dimsList = {2, 3, 4, 5};
             int[] numOfPtsList = { 3, 4, 5, 6};
             String resultsDir = "../results/";
-            saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChanges");
-            saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChanges");
-            saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChanges");
-            saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChanges");
+            experiment.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP");
+            experiment.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP");
+            experiment.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGP");
+            experiment.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGP");
         }
 
     }
 
-    protected static List<Long> argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, String dir, String spliter) {
-        List<Long> results = new ArrayList<>();
-        String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
 
-        File file = new File(dir, fileName);
-        if (!file.exists()) Data.generate(fileName, dimensions, numOfPoints, true);
-
-        TopKGPSkyline testGP = new TopKGPSkyline(gSize, topK);
-        System.out.println("Loading data!");
-        List<Integer[]> data = Data.readData(fileName, spliter);
-
-        // create layers
-        // twoD or higherD for computing layers
-        System.out.println("Creating graph...");
-        long cStartT = System.nanoTime();
-        SkGraph graph = testGP.createLayerGraph(data);// build the graph
-        long cEndT = System.nanoTime();
-        long creatGraphTime = cEndT - cStartT;
-        results.add(creatGraphTime);
-        System.out.println("Creating Graph                  Time: " + creatGraphTime / Math.pow(10, 9) + "s\n"); // nano second convert to second
-
-
-        boolean silent = true;
-        SkGraph graphBaseline = graph;
-        SkGraph graphTopk = graph;
-
-        System.out.println("Baseline is working...");
-        long start1 = System.nanoTime();
-        List<SkGroup> baselineGroups = testGP.getTopKGroups(graphBaseline, true, silent);
-        long end1 = System.nanoTime();
-        long calculation1 = end1 - start1;
-        long timeSumBaseline = creatGraphTime + calculation1;
-        results.add(calculation1);
-        results.add(timeSumBaseline);
-        System.out.println("Baseline Group-Point calculation Time: " + calculation1 / Math.pow(10, 9) + "s"); // nano second convert to second
-        System.out.println("Baseline Group-Point total       Time: " + timeSumBaseline / Math.pow(10, 9) + "s\n"); // nano second convert to second
-
-
-        System.out.println("Group-Point Skyline is working...");
-        long start2 = System.nanoTime();
-        // nodesTopk
-        List<SkGroup> topKGroups = testGP.getTopKGroups(graphTopk, false, silent);
-        long end2 = System.nanoTime();
-        long calculation2 = end2 - start2;
-        long timeSumTopK = creatGraphTime + calculation2;
-        results.add(calculation2);
-        results.add(timeSumTopK);
-        System.out.println("TopK Group-Point Skyline calculation Time: " + calculation2 / Math.pow(10, 9) + "s");
-        System.out.println("TopK Group-Point Skyline total       Time: " + timeSumTopK / Math.pow(10, 9) + "s\n");
-
-        return results;
-    }
-
-    protected static void saveTrialResults(String type, int[] variables, String dir, String spliter, String resultsFileName) {
-        try {
-            File file = new File(resultsFileName);
-            file.delete();
-            if (!file.exists()) file.createNewFile();
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            List<Long> results;
-            for (int var: variables) {
-                String line = "" + var;
-                switch (type) {
-                    case "GS" : // fix topK = 2, dims = 2, numOfPts = 1e5
-                        results = argumentsTrial(var, 2, 2, 5, dir, spliter); break;
-                    case "K" :  // fix gSize = 4, dims = 2, numOfPts = 1e5
-                        results = argumentsTrial(4, var, 2, 5, dir, spliter); break;
-                    case "D": // fix gSize = 4, topK = 2, numOfPts = 1e5
-                        results = argumentsTrial(4, 2, var, 5, dir, spliter); break;
-                    case "PT": // fix gSize = 4, topK = 2, dims = 2
-                        results = argumentsTrial(4, 2, 2, var, dir, spliter); break;
-                    default:
-                        results = new ArrayList<>();
-                }
-                for (long result: results)
-                    line += (spliter+result);
-                line += "\n";
-                writer.write(line);
-            }
-            writer.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-    }
 }
 

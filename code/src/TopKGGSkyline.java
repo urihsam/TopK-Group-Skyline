@@ -17,6 +17,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean refined, boolean silent) {
+        System.out.println("Group-Group getTopKGroups");
         List<SkGroup> universeGroups = getUniverseGroups(graph); // get universe set of groups
         TopKGroup topKGroup = searchUniverseGroups4TopK(universeGroups, refined); // search for topK
         if (!silent) topKGroup.print();
@@ -83,45 +84,29 @@ public class TopKGGSkyline extends TopKGPSkyline {
 
 
     public static void main(String[] args) {
-        int gSize = Integer.parseInt(args[0]); // group size
-        int topK = Integer.parseInt(args[1]); // top k
-        TopKGGSkyline testGG = new TopKGGSkyline(gSize, topK);
-        String spliter = "  ";
-        String fileName = "testdata";
-        List<Integer[]> data = Data.readData(fileName, spliter);
+        Experiment experiment = new Experiment("GG");
+        if (args.length > 0) { // with arguments
+            String spliter = "  ";
+            String dir = "../data/";
+            int gSize = Integer.parseInt(args[0]); // group size
+            int topK = Integer.parseInt(args[1]); // top k
+            int dims = Integer.parseInt(args[2]); // dimensions
+            int numOfPts = Integer.parseInt(args[3]); // the exponent X of 1eX
 
-        long timeSumBaseline = 0;
-        long timeSumTopK = 0;
-        long creatGraphTime = 0;
-
-        // create layers
-        // twoD or higherD for computing layers
-        long cStartT = System.nanoTime();
-        SkGraph graph = testGG.createLayerGraph(data);// build the graph
-        long cEndT = System.nanoTime();
-        creatGraphTime = creatGraphTime + (cEndT - cStartT);
-
-
-        boolean silent = true;
-        SkGraph graphBaseline = graph;
-        SkGraph graphTopk = graph;
-
-        long start1 = System.nanoTime();
-        List<SkGroup> baselineGroups = testGG.getTopKGroups(graphBaseline, false, silent);
-        long end1 = System.nanoTime();
-        timeSumBaseline = creatGraphTime + end1 - start1;
-        System.out.println("Baseline Group-Point        Time: " + timeSumBaseline/Math.pow(10, 9) + "s"); // nano second convert to second
-
-        long start2 = System.nanoTime();
-        // nodesTopk
-        List<SkGroup> topKGroups = testGG.getTopKGroups(graphTopk, silent);
-        long end2 = System.nanoTime();
-        timeSumTopK = creatGraphTime + end2 - start2;
-
-        System.out.println("TopK Group-Group Skyline    Time: " + timeSumTopK/Math.pow(10, 9) + "s");
-
-
-
+            experiment.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
+        } else { // without arguments, grid testing
+            String spliter = "  ";
+            String dir = "../data/";
+            int[] gSizeList = {2, 4, 5, 8, 10};
+            int[] topKList = {2, 4, 5, 8, 10};
+            int[] dimsList = {2, 3, 4, 5};
+            int[] numOfPtsList = { 3, 4, 5, 6};
+            String resultsDir = "../results/";
+            experiment.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
+            experiment.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
+            experiment.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG");
+            experiment.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG");
+        }
     }
 }
 
