@@ -207,11 +207,11 @@ public class TopKGPSkyline {
             int[] topKList = {2, 4, 5, 8, 10};
             int[] dimsList = {2, 3, 4, 5};
             int[] numOfPtsList = { 3, 4, 5, 6};
-
-            saveTrialResults("GS", gSizeList, dir, spliter,  "groupSizeChanges");
-            saveTrialResults("K", topKList, dir, spliter,  "topKChanges");
-            saveTrialResults("D", dimsList, dir, spliter,  "dimensionsChanges");
-            saveTrialResults("PT", numOfPtsList, dir, spliter,  "numOfPointsChanges");
+            String resultsDir = "../results/";
+            saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChanges");
+            saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChanges");
+            saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChanges");
+            saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChanges");
         }
 
     }
@@ -269,7 +269,7 @@ public class TopKGPSkyline {
         return results;
     }
 
-    protected static void saveTrialResults(String type, int[] variables, String dir, String spliter,  String resultsFileName) {
+    protected static void saveTrialResults(String type, int[] variables, String dir, String spliter, String resultsFileName) {
         try {
             File file = new File(resultsFileName);
             file.delete();
@@ -279,12 +279,12 @@ public class TopKGPSkyline {
             for (int var: variables) {
                 String line = "" + var;
                 switch (type) {
-                    case "GS" : // fix topK = 2, dims = 2, numOfPts = 1e6
-                        results = argumentsTrial(var, 2, 2, 6, dir, spliter); break;
-                    case "K" :  // fix gSize = 4, dims = 2, numOfPts = 1e6
-                        results = argumentsTrial(4, var, 2, 6, dir, spliter); break;
-                    case "D": // fix gSize = 4, topK = 2, numOfPts = 1e6
-                        results = argumentsTrial(4, 2, var, 6, dir, spliter); break;
+                    case "GS" : // fix topK = 2, dims = 2, numOfPts = 1e5
+                        results = argumentsTrial(var, 2, 2, 5, dir, spliter); break;
+                    case "K" :  // fix gSize = 4, dims = 2, numOfPts = 1e5
+                        results = argumentsTrial(4, var, 2, 5, dir, spliter); break;
+                    case "D": // fix gSize = 4, topK = 2, numOfPts = 1e5
+                        results = argumentsTrial(4, 2, var, 5, dir, spliter); break;
                     case "PT": // fix gSize = 4, topK = 2, dims = 2
                         results = argumentsTrial(4, 2, 2, var, dir, spliter); break;
                     default:
