@@ -33,10 +33,10 @@ public class Data {
         }
     }
 
-    public static void generate(String fileName, int dimensions, int numOfPoints, boolean forceCreate) {// This will reference one line at a time
+    public static void generate(String dir, String fileName, int dimensions, int numOfPoints, boolean forceCreate) {// This will reference one line at a time
         File file;
         try {
-            file = new File(fileName);
+            file = new File(dir, fileName);
             if (forceCreate) file.delete();
             if (!file.exists()) file.createNewFile();
         } catch (IOException ioe) {
@@ -46,10 +46,11 @@ public class Data {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             Random random = new Random();
+            int bound = numOfPoints*2;
             for (int pIdx=0; pIdx<numOfPoints; pIdx++) {
-                String line = "" + random.nextInt(numOfPoints);
+                String line = "" + random.nextInt(bound);
                 for (int dIdx=1; dIdx<dimensions; dIdx++)
-                    line += ("  " + random.nextInt(numOfPoints));
+                    line += ("  " + random.nextInt(bound));
                 line += "\n";
                 writer.write(line);
             }
@@ -60,12 +61,16 @@ public class Data {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        String fileName = "testdata_large";
-        int dimensions = Integer.parseInt(args[0]); // dimension
-        int numOfPoints = Integer.parseInt(args[1]); // num of points
-        boolean forceCreate = Boolean.parseBoolean(args[2]); // forceCreate
+        String dir = "../data/";
+        String fileName = dir + args[0]; // filename
+        int dimensions = Integer.parseInt(args[1]); // dimension
+        int numOfPoints = Integer.parseInt(args[2]); // num of points
+        boolean forceCreate = Boolean.parseBoolean(args[3]); // forceCreate
+        // e.g.
+        // largeTestData 2 100000 true
 
-        Data.generate(fileName, dimensions, numOfPoints, forceCreate);
+        Data.generate(dir, fileName, dimensions, numOfPoints, forceCreate);
+        System.out.println("Data generated!");
     }
 
 }

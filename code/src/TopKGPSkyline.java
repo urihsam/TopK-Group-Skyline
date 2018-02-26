@@ -177,8 +177,10 @@ public class TopKGPSkyline {
         int topK = Integer.parseInt(args[1]); // top k
         TopKGPSkyline testGP = new TopKGPSkyline(gSize, topK);
 
+        String dir = "../data/";
         String spliter = "  ";
         String fileName = "testdata";
+        fileName = dir + fileName;
         List<Integer[]> data = Data.readData(fileName, spliter);
 
         long timeSumBaseline = 0;
