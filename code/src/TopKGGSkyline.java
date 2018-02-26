@@ -86,7 +86,9 @@ public class TopKGGSkyline extends TopKGPSkyline {
         int gSize = Integer.parseInt(args[0]); // group size
         int topK = Integer.parseInt(args[1]); // top k
         TopKGGSkyline testGG = new TopKGGSkyline(gSize, topK);
-        List<Integer[]> data = readData("testdata");
+        String spliter = "  ";
+        String fileName = "testdata";
+        List<Integer[]> data = Data.readData(fileName, spliter);
 
         long timeSumBaseline = 0;
         long timeSumTopK = 0;
@@ -117,9 +119,6 @@ public class TopKGGSkyline extends TopKGPSkyline {
         timeSumTopK = timeSumTopK + end2 - start2;
 
         System.out.println("TopK Group-Group Skyline    Time: " + timeSumTopK);
-
-
-
 
     }
 }

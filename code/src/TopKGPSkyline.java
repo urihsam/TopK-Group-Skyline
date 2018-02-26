@@ -170,39 +170,16 @@ public class TopKGPSkyline {
         }
     }
 
-    public static List<Integer[]> readData(String fileName) throws FileNotFoundException{
-        // input data
-        FileInputStream in = new FileInputStream(fileName);
-        Scanner scanner = new Scanner(in);
-        // List<String> rawData = new List<String>();
-        List<Integer[]> data = new ArrayList<Integer[]>();
 
-
-        while (scanner.hasNextLine()) {
-            String sline = scanner.nextLine();
-            // String[] sline = scanner.nextLine().split(",");
-            // if(!rawData.contains(sline)) {
-            // rawData.add(sline);
-
-            //String[] s = sline.split(",");
-            String[] s = sline.split("  ");
-
-            Integer[] line = new Integer[s.length];
-            for (int i = 0; i < s.length; i++)
-                line[i] = Integer.parseInt(s[i].trim());
-            data.add(line);
-            // }
-        }
-        // rawData.clear();
-        scanner.close();
-        return data;
-    }
 
     public static void main(String[] args) throws FileNotFoundException {
         int gSize = Integer.parseInt(args[0]); // group size
         int topK = Integer.parseInt(args[1]); // top k
         TopKGPSkyline testGP = new TopKGPSkyline(gSize, topK);
-        List<Integer[]> data = readData("testdata");
+
+        String spliter = "  ";
+        String fileName = "testdata";
+        List<Integer[]> data = Data.readData(fileName, spliter);
 
         long timeSumBaseline = 0;
         long timeSumTopK = 0;
