@@ -8,8 +8,9 @@
 **/graphs
 **/*.old/*
 **/.DS_Store
-**/code/.idea/*
-**/code/*.class
+**/code/**/.idea/*
+**/code/**/*.class
+**/code/**/META-INF/*
 **/.vscode/*
 
 # Byte-compiled / optimized / DLL files

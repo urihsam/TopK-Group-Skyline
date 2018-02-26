@@ -20,7 +20,11 @@ public class Experiment {
 
     public List<Long> argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, String dir, String spliter) {
         List<Long> results = new ArrayList<>();
-        String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
+        //String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
+        ///* test for testData
+        String fileName = "../data/testData";
+        gSize = 2; topK = 4; dimensions = 2; numOfPoints = 13;
+        //*/
 
         File file = new File(dir, fileName);
         if (!file.exists()) Data.generate(fileName, dimensions, numOfPoints, true);
@@ -42,7 +46,7 @@ public class Experiment {
         System.out.println("Creating Graph                  Time: " + creatGraphTime / Math.pow(10, 9) + "s\n"); // nano second convert to second
 
 
-        boolean silent = true;
+        boolean silent = false;
         SkGraph graphBaseline = graph;
         SkGraph graphTopk = graph;
 
@@ -88,14 +92,14 @@ public class Experiment {
             for (int var: variables) {
                 String line = "" + var;
                 switch (type) {
-                    case "GS" : // fix topK = 2, dims = 2, numOfPts = 1e5
-                        results = argumentsTrial(var, 2, 2, 5, dir, spliter); break;
-                    case "K" :  // fix gSize = 4, dims = 2, numOfPts = 1e5
-                        results = argumentsTrial(4, var, 2, 5, dir, spliter); break;
-                    case "D": // fix gSize = 4, topK = 2, numOfPts = 1e5
-                        results = argumentsTrial(4, 2, var, 5, dir, spliter); break;
-                    case "PT": // fix gSize = 4, topK = 2, dims = 2
-                        results = argumentsTrial(4, 2, 2, var, dir, spliter); break;
+                    case "GS" : // fix topK = 3, dims = 3, numOfPts = 1e5
+                        results = argumentsTrial(var, 3, 3, 5, dir, spliter); break;
+                    case "K" :  // fix gSize = 5, dims = 3, numOfPts = 1e5
+                        results = argumentsTrial(5, var, 3, 5, dir, spliter); break;
+                    case "D": // fix gSize = 5, topK = 3, numOfPts = 1e5
+                        results = argumentsTrial(5, 3, var, 5, dir, spliter); break;
+                    case "PT": // fix gSize = 5, topK = 3, dims = 3
+                        results = argumentsTrial(5, 3, 3, var, dir, spliter); break;
                     default:
                         results = new ArrayList<>();
                 }

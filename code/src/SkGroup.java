@@ -9,7 +9,7 @@ import java.util.Collections;
 public class SkGroup { // implements Comparable{
     protected List<SkNode> gNodes;
     protected List<SkNode> dominatedNodes;
-    protected int maxSizeOfDominatedGroups;
+    protected long maxSizeOfDominatedGroups;
     protected List<SkGroup> dominatedGroups;
 
     public SkGroup() {
@@ -76,7 +76,7 @@ public class SkGroup { // implements Comparable{
 
     public List<SkNode> getDominatedNodes() { return dominatedNodes; }
 
-    public int getMaxSizeOfDominatedGroups() { return maxSizeOfDominatedGroups; }
+    public long getMaxSizeOfDominatedGroups() { return maxSizeOfDominatedGroups; }
 
     public int getSizeOfDominatedGroups() { return dominatedGroups.size(); }
 
@@ -155,8 +155,8 @@ public class SkGroup { // implements Comparable{
     public void printGroups() {
         System.out.println("\n==========Group size: "+ getGroupSize() + " Number of dominatedGroups: " + getSizeOfDominatedGroups() +"==========");
         System.out.println("Group info:");
-        for (SkGroup group: dominatedGroups)
-            group.print();
+        for (SkNode node: gNodes)
+            node.print();
     }
 
     /*@Override

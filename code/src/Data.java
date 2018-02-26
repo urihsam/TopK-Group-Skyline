@@ -35,6 +35,7 @@ public class Data {
 
     public static void generate(String fileName, int dimensions, int numOfPoints, boolean forceCreate) {// This will reference one line at a time
         File file;
+        numOfPoints = (int)Math.pow(10, numOfPoints);
         try {
             file = new File(fileName);
             if (forceCreate) file.delete();
@@ -64,7 +65,7 @@ public class Data {
         String dir = "../data/";
         String fileName = dir+args[0]; // filename
         int dimensions = Integer.parseInt(args[1]); // dimension
-        int numOfPoints = (int)Math.pow(10, Integer.parseInt(args[2])); // num of points in exponent
+        int numOfPoints = Integer.parseInt(args[2]); // num of points in exponent
         boolean forceCreate = Boolean.parseBoolean(args[3]); // forceCreate
         // e.g.
         // largeTestData 2 10000 true

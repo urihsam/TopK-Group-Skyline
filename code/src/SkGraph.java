@@ -11,8 +11,6 @@ public class SkGraph {
         graphSize = 0;
         effectiveLayer = effLayer;
         graphLayers = new ArrayList<SkLayer>();
-        for (int idx=0; idx<effLayer+1; idx++) // initialize SkLayer and add into graphLayers
-            graphLayers.add(new SkLayer(idx));
     }
 
     public void addGraphLayer(SkLayer layer){
@@ -27,6 +25,9 @@ public class SkGraph {
     public List<SkLayer> getGraphLayers() { return graphLayers; }
 
     public SkLayer getGraphLayer(int layerIdx) {
+        if (layerIdx >= getNumOfLayers())
+            for (int lIdx=getNumOfLayers(); lIdx<layerIdx+1; lIdx++)
+                graphLayers.add(new SkLayer(lIdx));
         return graphLayers.get(layerIdx);
     }
 
