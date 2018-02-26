@@ -82,7 +82,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) {
         int gSize = Integer.parseInt(args[0]); // group size
         int topK = Integer.parseInt(args[1]); // top k
         TopKGGSkyline testGG = new TopKGGSkyline(gSize, topK);
@@ -109,16 +109,22 @@ public class TopKGGSkyline extends TopKGPSkyline {
         long start1 = System.nanoTime();
         List<SkGroup> baselineGroups = testGG.getTopKGroups(graphBaseline, false, silent);
         long end1 = System.nanoTime();
-        timeSumBaseline = timeSumBaseline + end1 - start1;
-        System.out.println("Baseline Group-Point        Time: " + timeSumBaseline);
+        timeSumBaseline = creatGraphTime + end1 - start1;
+        System.out.println("Baseline Group-Point        Time: " + timeSumBaseline/Math.pow(10, 9) + "s"); // nano second convert to second
 
         long start2 = System.nanoTime();
         // nodesTopk
         List<SkGroup> topKGroups = testGG.getTopKGroups(graphTopk, silent);
         long end2 = System.nanoTime();
-        timeSumTopK = timeSumTopK + end2 - start2;
+        timeSumTopK = creatGraphTime + end2 - start2;
 
-        System.out.println("TopK Group-Group Skyline    Time: " + timeSumTopK);
+        System.out.println("TopK Group-Group Skyline    Time: " + timeSumTopK/Math.pow(10, 9) + "s");
+
+
+
+        ///
+
+
 
     }
 }
