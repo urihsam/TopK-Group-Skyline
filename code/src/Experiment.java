@@ -50,6 +50,22 @@ public class Experiment {
         SkGraph graphBaseline = graph;
         SkGraph graphTopk = graph;
 
+        // TopK
+        System.out.println(TrailDetail+" Skyline is working...");
+        long start2 = System.nanoTime();
+        List<SkGroup> topKGroups;
+        if (TrialType == "GP") topKGroups = test.getTopKGroups(graphTopk, false, silent);
+        else topKGroups = test.getTopKGroups(graphTopk, true, silent);
+
+        long end2 = System.nanoTime();
+        long calculation2 = end2 - start2;
+        long timeSumTopK = creatGraphTime + calculation2;
+        results.add(calculation2);
+        results.add(timeSumTopK);
+        System.out.println("TopK "+TrailDetail+" Skyline calculation Time: " + calculation2 / Math.pow(10, 9) + "s");
+        System.out.println("TopK "+TrailDetail+" Skyline total       Time: " + timeSumTopK / Math.pow(10, 9) + "s\n");
+
+        // Baseline
         System.out.println("Baseline is working...");
         long start1 = System.nanoTime();
         List<SkGroup> baselineGroups;
@@ -63,21 +79,6 @@ public class Experiment {
         results.add(timeSumBaseline);
         System.out.println("Baseline "+TrailDetail+" calculation Time: " + calculation1 / Math.pow(10, 9) + "s"); // nano second convert to second
         System.out.println("Baseline "+TrailDetail+" total       Time: " + timeSumBaseline / Math.pow(10, 9) + "s\n"); // nano second convert to second
-
-
-        System.out.println("Group-Point Skyline is working...");
-        long start2 = System.nanoTime();
-        List<SkGroup> topKGroups;
-        if (TrialType == "GP") topKGroups = test.getTopKGroups(graphTopk, false, silent);
-        else topKGroups = test.getTopKGroups(graphTopk, true, silent);
-
-        long end2 = System.nanoTime();
-        long calculation2 = end2 - start2;
-        long timeSumTopK = creatGraphTime + calculation2;
-        results.add(calculation2);
-        results.add(timeSumTopK);
-        System.out.println("TopK "+TrailDetail+" Skyline calculation Time: " + calculation2 / Math.pow(10, 9) + "s");
-        System.out.println("TopK "+TrailDetail+" Skyline total       Time: " + timeSumTopK / Math.pow(10, 9) + "s\n");
 
         return results;
     }

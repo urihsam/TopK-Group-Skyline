@@ -97,7 +97,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
-            int[] gSizeList = {2, 4, 5, 8, 10};
+            int[] gSizeList = {2, 3, 4, 5, 8, 10};
             int[] topKList = {2, 4, 5, 8, 10};
             int[] dimsList = {2, 3, 4, 5};
             int[] numOfPtsList = { 3, 4, 5, 6};
