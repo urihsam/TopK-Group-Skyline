@@ -20,11 +20,11 @@ public class Experiment {
 
     public List<Long> argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, String dir, String spliter) {
         List<Long> results = new ArrayList<>();
-        //String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
-        ///* test for testData
+        String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
+        /* test for testData
         String fileName = "../data/testData";
         gSize = 2; topK = 4; dimensions = 2; numOfPoints = 13;
-        //*/
+        */
 
         File file = new File(dir, fileName);
         if (!file.exists()) Data.generate(fileName, dimensions, numOfPoints, true);
@@ -46,7 +46,7 @@ public class Experiment {
         System.out.println("Creating Graph                  Time: " + creatGraphTime / Math.pow(10, 9) + "s\n"); // nano second convert to second
 
 
-        boolean silent = false;
+        boolean silent = true;
         SkGraph graphBaseline = graph;
         SkGraph graphTopk = graph;
 
