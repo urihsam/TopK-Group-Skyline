@@ -92,12 +92,12 @@ public class Experiment {
             for (int var: variables) {
                 String line = "" + var;
                 switch (type) {
-                    case "GS" : // fix topK = 3, dims = 3, numOfPts = 1e5
-                        results = argumentsTrial(var, 3, 3, 5, dir, spliter); break;
-                    case "K" :  // fix gSize = 5, dims = 3, numOfPts = 1e5
-                        results = argumentsTrial(5, var, 3, 5, dir, spliter); break;
-                    case "D": // fix gSize = 5, topK = 3, numOfPts = 1e5
-                        results = argumentsTrial(5, 3, var, 5, dir, spliter); break;
+                    case "GS" : // fix topK = 3, dims = 3, numOfPts = 1e4
+                        results = argumentsTrial(var, 3, 3, 4, dir, spliter); break;
+                    case "K" :  // fix gSize = 5, dims = 3, numOfPts = 1e4
+                        results = argumentsTrial(5, var, 3, 4, dir, spliter); break;
+                    case "D": // fix gSize = 5, topK = 3, numOfPts = 1e4
+                        results = argumentsTrial(5, 3, var, 4, dir, spliter); break;
                     case "PT": // fix gSize = 5, topK = 3, dims = 3
                         results = argumentsTrial(5, 3, 3, var, dir, spliter); break;
                     default:
