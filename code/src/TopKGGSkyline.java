@@ -84,7 +84,8 @@ public class TopKGGSkyline extends TopKGPSkyline {
 
 
     public static void main(String[] args) {
-        Experiment experiment = new Experiment("GG");
+        Experiment experimentBaseline = new Experiment("GG", true);
+        Experiment experimentTopKGG = new Experiment("GG", false);
         if (args.length > 0) { // with arguments
             String spliter = "  ";
             String dir = "../data/";
@@ -93,19 +94,32 @@ public class TopKGGSkyline extends TopKGPSkyline {
             int dims = Integer.parseInt(args[2]); // dimensions
             int numOfPts = Integer.parseInt(args[3]); // the exponent X of 1eX
 
-            experiment.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
+            experimentTopKGG.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
+            experimentBaseline.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
-            int[] gSizeList = {2, 3, 4, 5, 8, 10};
-            int[] topKList = {2, 4, 5, 8, 10};
+            int stdGSize = 3;
+            int stdTopK = 3;
+            int stdDims = 2;
+            int stdNOPt = 3;
+            experimentTopKGG.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
+            experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
+            int[] gSizeList = {2, 3, 4, 5, 8};
+            int[] topKList = {2, 4, 5, 8};
             int[] dimsList = {2, 3, 4, 5};
             int[] numOfPtsList = { 3, 4, 5, 6};
             String resultsDir = "../results/";
-            experiment.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
-            experiment.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
-            experiment.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG");
-            experiment.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG");
+            experimentTopKGG.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
+            experimentTopKGG.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
+            experimentTopKGG.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG");
+            experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG");
+
+            // baseline
+            experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG_Baseline");
+            experimentBaseline.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG_Baseline");
+            experimentBaseline.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG_Baseline");
+            experimentBaseline.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG_Baseline");
         }
     }
 }
