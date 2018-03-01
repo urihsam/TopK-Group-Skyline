@@ -212,20 +212,22 @@ public class TopKGPSkyline {
             int stdNOPt = 3;
             experimentTopKGP.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
             experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
-            int[] gSizeList = {2, 3, 4, 5, 8};
-            int[] topKList = {2, 4, 5, 8};
-            int[] dimsList = {2, 3, 4, 5};
-            int[] numOfPtsList = { 3, 4, 5, 6};
+            /*int[] gSizeList = {2, 3, 4, 5};
+            int[] topKList = {2, 3, 4, 5};*/
+            int[] dimsList = {6};
+            int[] numOfPtsList = {6};
             String resultsDir = "../results/";
             experimentTopKGP.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGP");
-            experimentTopKGP.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP");
-            experimentTopKGP.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP");
+            /*experimentTopKGP.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP");
+            experimentTopKGP.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP");*/
             experimentTopKGP.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGP");
             // baseline
-            experimentBaseline.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGP_Baseline");
-            experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP_Baseline");
-            experimentBaseline.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP_Baseline");
-            experimentBaseline.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGP_Baseline");
+            int[] dimsListBaseline = {6};
+            int[] numOfPtsListBaseline = {2, 3, 4};
+            experimentBaseline.saveTrialResults("D", dimsListBaseline, dir, spliter,  resultsDir+"dimensionsChangesGP_Baseline");
+            /*experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP_Baseline");
+            experimentBaseline.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP_Baseline");*/
+            experimentBaseline.saveTrialResults("PT", numOfPtsListBaseline, dir, spliter,  resultsDir+"numOfPointsChangesGP_Baseline");
         }
 
     }

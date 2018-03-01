@@ -105,10 +105,10 @@ public class TopKGGSkyline extends TopKGPSkyline {
             int stdNOPt = 3;
             experimentTopKGG.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
             experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
-            int[] gSizeList = {2, 3, 4, 5, 8};
+            int[] gSizeList = {2, 3, 4, 5};
             int[] topKList = {2, 4, 5, 8};
-            int[] dimsList = {2, 3, 4, 5};
-            int[] numOfPtsList = { 3, 4, 5, 6};
+            int[] dimsList = {2, 3, 4};
+            int[] numOfPtsList = { 3, 4, 5};
             String resultsDir = "../results/";
             experimentTopKGG.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
             experimentTopKGG.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
