@@ -99,21 +99,21 @@ public class TopKGGSkyline extends TopKGPSkyline {
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
-            int stdGSize = 3;
-            int stdTopK = 3;
+            int stdGSize = 2;
+            int stdTopK = 2;
             int stdDims = 2;
-            int stdNOPt = 3;
+            int stdNOPt = 2;
             experimentTopKGG.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
             experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
-            int[] gSizeList = {2, 3, 4, 5};
-            int[] topKList = {2, 4, 5, 8};
-            int[] dimsList = {2, 3, 4};
-            int[] numOfPtsList = { 3, 4, 5};
+            int[] gSizeList = {2, 3}; // 3: 13846.352713462s
+            int[] topKList = {2, 3, 4};
+            int[] dimsList = {2, 3};
+            int[] numOfPtsList = { 2, 3, 4};
             String resultsDir = "../results/";
-            experimentTopKGG.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
             experimentTopKGG.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
             experimentTopKGG.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG");
             experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG");
+            experimentTopKGG.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
 
             // baseline
             experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG_Baseline");

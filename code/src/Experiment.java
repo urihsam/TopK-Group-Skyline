@@ -127,6 +127,7 @@ public class Experiment {
                 for (double result: results)
                     line += (spliter+result);
                 line += "\n";
+                writer.flush();
                 writer.write(line);
             }
             writer.close();

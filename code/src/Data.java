@@ -47,7 +47,7 @@ public class Data {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             Random random = new Random();
-            int bound = numOfPoints*10;
+            int bound = numOfPoints*5*dimensions;
             for (int pIdx=0; pIdx<numOfPoints; pIdx++) {
                 String line = "" + random.nextInt(bound);
                 for (int dIdx=1; dIdx<dimensions; dIdx++)
