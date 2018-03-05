@@ -8,9 +8,13 @@ import java.util.Collections;
  * Created by mashiru on 2/24/18.
  */
 public class TopKGGSkyline extends TopKGPSkyline {
+    protected int numOfGraphLayers;
     public TopKGGSkyline(int gSize, int topK) {
         super(gSize, topK);
+        numOfGraphLayers = gSize;
     }
+
+    public void setNumOfGraphLayers(int numOfLayers) { numOfGraphLayers = numOfLayers; }
 
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean silent) {
         return getTopKGroups(graph, true, silent);
@@ -25,12 +29,15 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     protected TopKGroup searchUniverseGroups4TopK(List<SkGroup> universeGroups, boolean refined) {
+        System.out.println("Group-Group searchUniverseGroups4TopK");
         TopKGroup topKGroup = new TopKGroup(topK, true);
         for (SkGroup ugroup: universeGroups) { // for each group in the universe
             // if topKGroup is full and the maximum size of dominated group of ugroup is smaller than the minimum in the topKGroup, then skip
             if (refined && topKGroup.getTopKGroupSize() == topK && ugroup.getMaxSizeOfDominatedGroups() < topKGroup.getMinSizeOfDominatedGroups())
                 continue;
-            ugroup.calculateDominatedGroups(); // calculate the dominated groups
+            // TODO: for groupSize == 2, 3, use combination operations
+            // calculate the dominated groups using approximation method, only care about the children in the first groupSize layers
+            ugroup.calculateDominatedGroups(numOfGraphLayers==-1?groupSize:numOfGraphLayers-1);
             topKGroup.addSkGroup(ugroup); // add into the topKGroup
         }
         return topKGroup;
@@ -38,6 +45,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
 
     // using group-wise method
     protected List<SkGroup> getUniverseGroups(SkGraph graph) {
+        System.out.println("Group-Group getUniverseGroups");
         List<SkGroup> universeGroups = new ArrayList<>();
         List<UnitGroup> unitGroups = new ArrayList<>();
         List<SkNode> tailSet = new ArrayList<>();
@@ -62,6 +70,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     protected void searchGroupsByUnit(List<UnitGroup> unitGroups, List<SkNode> tailSet, List<SkGroup> universeGroups) {
+        System.out.println("Group-Group searchGroupsByUnit");
         if (unitGroups.size() == 0) // no unit groups needs to be search
             return;
         List<UnitGroup> newUnitGroups = new ArrayList<>(); // the unit groups for next recursion
@@ -93,9 +102,11 @@ public class TopKGGSkyline extends TopKGPSkyline {
             int topK = Integer.parseInt(args[1]); // top k
             int dims = Integer.parseInt(args[2]); // dimensions
             int numOfPts = Integer.parseInt(args[3]); // the exponent X of 1eX
-
-            experimentTopKGG.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
-            experimentBaseline.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
+            int numOfGraphLayers = gSize; // Default number of graph Layers for cases where group size > 3
+            if (args.length > 4) // -1 means all layers
+                numOfGraphLayers = Integer.parseInt(args[4]);
+            experimentTopKGG.argumentsTrial(gSize, topK, dims, numOfPts, numOfGraphLayers, dir, spliter);
+            experimentBaseline.argumentsTrial(gSize, topK, dims, numOfPts, numOfGraphLayers, dir, spliter);
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";

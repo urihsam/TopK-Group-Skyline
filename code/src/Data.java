@@ -7,8 +7,11 @@ import java.util.Random;
  * Created by mashiru on 2/25/18.
  */
 public class Data {
-    public static List<Integer[]> readData(String fileName, String spliter) {
-        List<Integer[]> data = new ArrayList<Integer[]>();
+    public static List<Double[]> readData(String fileName, String spliter) {
+        return readData(fileName, spliter, -1);
+    }
+    public static List<Double[]> readData(String fileName, String spliter, int postCount) {
+        List<Double[]> data = new ArrayList<Double[]>();
         try
         {
             BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -16,10 +19,11 @@ public class Data {
             while ((sline = reader.readLine()) != null)
             {
                 String[] s = sline.split(spliter); // spliter = "  "
-
-                Integer[] line = new Integer[s.length];
-                for (int i = 0; i < s.length; i++)
-                    line[i] = Integer.parseInt(s[i].trim());
+                int lIdx = 0;
+                int postCnt = postCount == -1?s.length:postCount; // postCnt, the count of the value used, counting from the end of the list
+                Double[] line = new Double[postCnt];
+                for (int idx = s.length-postCnt; idx < s.length; idx++)
+                    line[lIdx++] = Double.parseDouble(s[idx].trim());
                 data.add(line);
             }
             reader.close();

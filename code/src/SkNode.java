@@ -5,22 +5,22 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class SkNode implements Comparable {
-    protected Integer[] val;
+    protected Double[] val;
     protected int layerIdx; // starting from 0
     protected int id;
     protected List<SkNode> parents;
     protected List<SkNode> children;
 
     public SkNode(int d) {
-        this.val = new Integer[d];
+        this.val = new Double[d];
         this.layerIdx = 0;
         this.id = 0;
         this.parents = new ArrayList<SkNode>();
         this.children = new ArrayList<SkNode>();
     }
 
-    public SkNode(Integer[] val, int layerIdx) {
-        this.val = new Integer[val.length];
+    public SkNode(Double[] val, int layerIdx) {
+        this.val = new Double[val.length];
         this.layerIdx = layerIdx;
         this.id = 0;
         for(int i=0; i<val.length; i++)
@@ -30,11 +30,11 @@ public class SkNode implements Comparable {
     }
 
 
-    public Integer[] getVal() {
+    public Double[] getVal() {
         return val;
     }
 
-    public void setVal(Integer[] val) {
+    public void setVal(Double[] val) {
         for(int i=0; i<val.length; i++)
             this.val[i] = val[i];
     }
@@ -55,6 +55,19 @@ public class SkNode implements Comparable {
 
     public List<SkNode> getChildren() { return children; }
 
+    public List<SkNode> getChildren(int endLayerIdx) {
+        return getChildren(endLayerIdx, 0);
+    }
+
+    public List<SkNode> getChildren(int endLayerIdx, float percent) {
+        SkNode cNode;
+        int nodeSize = (int)(children.size() * percent);
+        List<SkNode>  results = new ArrayList<>(children.subList(0, nodeSize));
+        for (int nIdx = nodeSize; nIdx<children.size() && (cNode=children.get(nIdx)).getLayerIdx() <= endLayerIdx; nIdx++)
+            results.add(cNode);
+        return results;
+    }
+
     public void addChild(SkNode child) { children.add(child); }
 
     public int getSizeOfDominatedNodes() { return children.size(); }
@@ -70,7 +83,7 @@ public class SkNode implements Comparable {
     public void print() {
         System.out.println("\n----------Node ID: " + id + " Layer index: "+ layerIdx+"----------");
         System.out.print("Value info: [ ");
-        for (int value: val)
+        for (double value: val)
             System.out.print(value + " ");
         System.out.println("]");
     }

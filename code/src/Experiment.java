@@ -28,12 +28,25 @@ public class Experiment {
     }
 
     public List<Double> argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, String dir, String spliter) {
+        return argumentsTrial(gSize, topK, dimensions, numOfPoints, -1, dir, spliter); // use all layers
+    }
+
+    public List<Double> argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, int numOfGraphLayer, String dir, String spliter) {
         System.out.println("\n********Experiment for group size "+gSize+", topK "+topK+", dimensions "+dimensions+", num of points "+numOfPoints+"********\n");
         List<Double> results = new ArrayList<>();
-        String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
+        int postCount;
+        boolean silent = true;
+        // String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
+        // skipFirstCol = false;
+        // nba data
+        String fileName = dir+"nba.csv";
+        postCount = 5;
+        gSize = 5; topK = 3;
+        spliter = ",";
         /* test for testData
+        boolean silent = false;
         String fileName = "../data/testData";
-        gSize = 2; topK = 4; dimensions = 2; numOfPoints = 13;
+        gSize = 2; topK = 4;
         */
 
         File file = new File(dir, fileName);
@@ -41,9 +54,12 @@ public class Experiment {
 
         TopKGPSkyline test;
         if (TrialType == "GP") test = new TopKGPSkyline(gSize, topK);
-        else test = new TopKGGSkyline(gSize, topK);
+        else {
+            test = new TopKGGSkyline(gSize, topK);
+            ((TopKGGSkyline)test).setNumOfGraphLayers(numOfGraphLayer);
+        }
         System.out.println("Loading data!");
-        List<Integer[]> data = Data.readData(fileName, spliter);
+        List<Double[]> data = Data.readData(fileName, spliter, postCount);
 
         // create layers
         // twoD or higherD for computing layers
@@ -55,8 +71,6 @@ public class Experiment {
         results.add(creatGraphTime / Math.pow(10, 9));
         System.out.println("Creating Graph                  Time: " + creatGraphTime / Math.pow(10, 9) + "s\n"); // nano second convert to second
 
-
-        boolean silent = true;
         SkGraph graphBaseline = graph;
         SkGraph graphTopk = graph;
 
@@ -65,8 +79,8 @@ public class Experiment {
             System.out.println(TrailDetail + " Skyline is working...");
             long start2 = System.nanoTime();
             List<SkGroup> topKGroups;
-            if (TrialType == "GP") topKGroups = test.getTopKGroups(graphTopk, false, silent);
-            else topKGroups = test.getTopKGroups(graphTopk, true, silent);
+            if (TrialType == "GP") topKGroups = test.getTopKGroups(graphTopk, false, silent); // Group-point
+            else topKGroups = test.getTopKGroups(graphTopk, true, silent); // Group-group
 
             long end2 = System.nanoTime();
             long calculation2 = end2 - start2;

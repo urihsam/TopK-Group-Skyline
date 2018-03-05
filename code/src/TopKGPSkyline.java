@@ -20,7 +20,7 @@ public class TopKGPSkyline {
     public void setK(int k) { topK = k; }
 
     // if point a could dominate point b
-    public boolean isDominate(Integer[] a, Integer[] b) {
+    public boolean isDominate(Double[] a, Double[] b) {
         int mark = 0;
         for (int i = 0; i < a.length; i++) {
             if (a[i] > b[i])
@@ -33,15 +33,15 @@ public class TopKGPSkyline {
 
 
     // create graph: Not brute force & Higher dimension
-    public SkGraph createLayerGraph(List<Integer[]> data) {
+    public SkGraph createLayerGraph(List<Double[]> data) {
         // sort the points
         Collections.sort(data, new Comparator<Object>() {
             @Override
             public int compare(Object o1, Object o2) {
-                if (o1 instanceof Integer[]) return (compare((Integer[]) o1, (Integer[]) o2));
+                if (o1 instanceof Double[]) return (compare((Double[]) o1, (Double[]) o2));
                 return 0;
             }
-            public int compare(Integer[] o1, Integer[] o2) { return (o1[0] < o2[0] ? -1 : (o1[0] == o2[0] ? 0 : 1)); }
+            public int compare(Double[] o1, Double[] o2) { return (o1[0] < o2[0] ? -1 : (o1[0] == o2[0] ? 0 : 1)); }
         });
 
 

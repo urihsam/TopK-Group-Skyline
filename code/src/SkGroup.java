@@ -87,11 +87,20 @@ public class SkGroup { // implements Comparable{
     public int getGroupSize() { return gNodes.size(); }
 
     public void calculateDominatedGroups() {
+        calculateDominatedGroups(getGroupSize(), 0);
+    }
+
+    public void calculateDominatedGroups(int endLayerIdx) {
+        calculateDominatedGroups(endLayerIdx, 0);
+    }
+
+    public void calculateDominatedGroups(int endLayerIdx, float percent) {
         List<List<SkNode>> groupTrees4Check = new ArrayList<>();
         for (SkNode gnode: gNodes) {
             List<SkNode> nodes4Check = new ArrayList<>();
             nodes4Check.add(gnode); // add this group node into the check list
-            nodes4Check.addAll(gnode.getChildren()); // add the children of this group node into the check list
+            // add the children in the first (endLayerIdx+1) layers or in the first (percent) percentage of this group node into the check list
+            nodes4Check.addAll(gnode.getChildren(endLayerIdx, percent));
             groupTrees4Check.add(nodes4Check);
         }
         searchDominatedGroups(groupTrees4Check, new SkGroup()); // update dominatedGroups
