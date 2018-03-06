@@ -10,6 +10,7 @@ public class Data {
     public static List<Double[]> readData(String fileName, String spliter) {
         return readData(fileName, spliter, -1);
     }
+
     public static List<Double[]> readData(String fileName, String spliter, int postCount) {
         List<Double[]> data = new ArrayList<Double[]>();
         try
@@ -24,6 +25,7 @@ public class Data {
                 Double[] line = new Double[postCnt];
                 for (int idx = s.length-postCnt; idx < s.length; idx++)
                     line[lIdx++] = Double.parseDouble(s[idx].trim());
+
                 data.add(line);
             }
             reader.close();

@@ -2,8 +2,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by mashiru on 2/26/18.
@@ -18,7 +17,6 @@ public class Experiment {
     protected int standardNOPt;
 
 
-
     public Experiment(String type, boolean baseline) {
         this.baseline = baseline;
         TrialType = type;
@@ -27,35 +25,54 @@ public class Experiment {
         else TrailDetail = "Group-Group";
     }
 
-    public List<Double> argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, String dir, String spliter) {
+    protected List<List<List<Double>>> prepareResults(List<SkGroup> skGroups) {
+        // print timeResults
+        List<List<List<Double>>> results = new ArrayList<>();
+        for (SkGroup group: skGroups) { // for certain group
+            List<List<Double>> gResults = new ArrayList<>();
+            for (SkNode node: group.getGroupNodes()) // for certain node
+                gResults.add(Arrays.asList(node.getVal())); // add node's data to group
+            results.add(gResults); // add group result to the topK
+        }
+        return results;
+    }
+
+    public SkResult argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, String dir, String spliter) {
         return argumentsTrial(gSize, topK, dimensions, numOfPoints, -1, dir, spliter); // use all layers
     }
 
-    public List<Double> argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, int numOfGraphLayer, String dir, String spliter) {
+    public SkResult argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, int numOfGraphLayer, String dir, String spliter) {
         System.out.println("\n********Experiment for group size "+gSize+", topK "+topK+", dimensions "+dimensions+", num of points "+numOfPoints+"********\n");
-        List<Double> results = new ArrayList<>();
-        int postCount;
+        SkResult skResult = new SkResult();
+        List<Double> timeResults = new ArrayList<>();
+        int postCount = -1;
         boolean silent = true;
-        // String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
-        // skipFirstCol = false;
-        // nba data
-        String fileName = dir+"nba.csv";
-        postCount = 5;
-        gSize = 5; topK = 3;
-        spliter = ",";
-        /* test for testData
-        boolean silent = false;
-        String fileName = "../data/testData";
-        gSize = 2; topK = 4;
-        */
+        boolean smallerPref = true;
+        String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
 
+        ///*
+        // nba data
+        fileName = dir+"nba.csv";
+        postCount = 5;
+        numOfGraphLayer = gSize;
+        spliter = ",";
+        smallerPref = false;
+        //*/
+        /*
+        //test for testData
+        silent = false;
+        fileName = "../data/testData";
+        gSize = 2; topK = 4;
+        numOfGraphLayer = gSize;
+        smallerPref = false;
+        */
         File file = new File(dir, fileName);
         if (!file.exists()) Data.generate(fileName, dimensions, numOfPoints, true);
 
         TopKGPSkyline test;
-        if (TrialType == "GP") test = new TopKGPSkyline(gSize, topK);
+        if (TrialType == "GP") test = new TopKGPSkyline(gSize, topK, smallerPref);
         else {
-            test = new TopKGGSkyline(gSize, topK);
+            test = new TopKGGSkyline(gSize, topK, smallerPref);
             ((TopKGGSkyline)test).setNumOfGraphLayers(numOfGraphLayer);
         }
         System.out.println("Loading data!");
@@ -68,7 +85,7 @@ public class Experiment {
         SkGraph graph = test.createLayerGraph(data);// build the graph
         long cEndT = System.nanoTime();
         long creatGraphTime = cEndT - cStartT;
-        results.add(creatGraphTime / Math.pow(10, 9));
+        timeResults.add(creatGraphTime / Math.pow(10, 9));
         System.out.println("Creating Graph                  Time: " + creatGraphTime / Math.pow(10, 9) + "s\n"); // nano second convert to second
 
         SkGraph graphBaseline = graph;
@@ -85,10 +102,12 @@ public class Experiment {
             long end2 = System.nanoTime();
             long calculation2 = end2 - start2;
             long timeSumTopK = creatGraphTime + calculation2;
-            results.add(calculation2 / Math.pow(10, 9));
-            results.add(timeSumTopK / Math.pow(10, 9));
+            timeResults.add(calculation2 / Math.pow(10, 9));
+            timeResults.add(timeSumTopK / Math.pow(10, 9));
             System.out.println("TopK " + TrailDetail + " Skyline calculation Time: " + calculation2 / Math.pow(10, 9) + "s");
             System.out.println("TopK " + TrailDetail + " Skyline total       Time: " + timeSumTopK / Math.pow(10, 9) + "s\n");
+
+            skResult.setTopKResults(prepareResults(topKGroups));
         } else {
 
             // Baseline
@@ -101,13 +120,16 @@ public class Experiment {
             long end1 = System.nanoTime();
             long calculation1 = end1 - start1;
             long timeSumBaseline = creatGraphTime + calculation1;
-            results.add(calculation1 / Math.pow(10, 9));
-            results.add(timeSumBaseline / Math.pow(10, 9));
+            timeResults.add(calculation1 / Math.pow(10, 9));
+            timeResults.add(timeSumBaseline / Math.pow(10, 9));
             System.out.println("Baseline " + TrailDetail + " calculation Time: " + calculation1 / Math.pow(10, 9) + "s"); // nano second convert to second
             System.out.println("Baseline " + TrailDetail + " total       Time: " + timeSumBaseline / Math.pow(10, 9) + "s\n"); // nano second convert to second
-        }
 
-        return results;
+            skResult.setTopKResults(prepareResults(baselineGroups));
+        }
+        skResult.setTimeCosts(timeResults);
+
+        return skResult;
     }
 
     public void setStandardParams(int stdGSize, int stdTopK, int stdDims, int stdNOPt) {
@@ -123,24 +145,35 @@ public class Experiment {
             file.delete();
             if (!file.exists()) file.createNewFile();
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            List<Double> results;
+            SkResult skResult;
             for (int var: variables) {
                 String line = "" + var;
                 switch (type) {
                     case "GS" : // fix topK = 3, dims = 3, numOfPts = 1e4
-                        results = argumentsTrial(var, standardTopK, standardDims, standardNOPt, dir, spliter); break;
+                        skResult = argumentsTrial(var, standardTopK, standardDims, standardNOPt, dir, spliter); break;
                     case "K" :  // fix gSize = 5, dims = 3, numOfPts = 1e4
-                        results = argumentsTrial(standardGSize, var, standardDims, standardNOPt, dir, spliter); break;
+                        skResult = argumentsTrial(standardGSize, var, standardDims, standardNOPt, dir, spliter); break;
                     case "D": // fix gSize = 5, topK = 3, numOfPts = 1e4
-                        results = argumentsTrial(standardGSize, standardTopK, var, standardNOPt, dir, spliter); break;
+                        skResult = argumentsTrial(standardGSize, standardTopK, var, standardNOPt, dir, spliter); break;
                     case "PT": // fix gSize = 5, topK = 3, dims = 3
-                        results = argumentsTrial(standardGSize, standardTopK, standardDims, var, dir, spliter); break;
+                        skResult = argumentsTrial(standardGSize, standardTopK, standardDims, var, dir, spliter); break;
                     default:
-                        results = new ArrayList<>();
+                        skResult = new SkResult();
                 }
-                for (double result: results)
+                // add time
+                for (double result: skResult.getTimeCosts())
                     line += (spliter+result);
-                line += "\n";
+                line += "\nTop k groups\n";
+                int count = 1;
+                for (List<List<Double>> group: skResult.getTopKResults()) {
+                    line += ("Group " + count++);
+                    for (List<Double> node : group) {
+                        for (double data : node)
+                            line +=  (data + spliter);
+                        line += "\n";
+                    }
+                    line += "\n";
+                }
                 writer.flush();
                 writer.write(line);
             }

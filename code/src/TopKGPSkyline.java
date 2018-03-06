@@ -8,12 +8,22 @@ import java.util.*;
 public class TopKGPSkyline {
     protected int groupSize;
     protected int topK;
+    protected boolean smallerPref;
 
     public TopKGPSkyline(int gSize, int topK) {
         groupSize = gSize;
         this.topK = topK;
+        smallerPref = true;
     }
 
+    public TopKGPSkyline(int gSize, int topK, boolean smaller) {
+        groupSize = gSize;
+        this.topK = topK;
+        smallerPref = smaller;
+    }
+
+    public void setSmallerPref(boolean smaller) { smallerPref = smaller; }
+    public boolean getSmallerPref() { return smallerPref; }
     public int getGroupSize() { return groupSize; }
     public void setGroupSize(int gSize) { groupSize = gSize; }
     public int getK() { return topK; }
@@ -23,7 +33,7 @@ public class TopKGPSkyline {
     public boolean isDominate(Double[] a, Double[] b) {
         int mark = 0;
         for (int i = 0; i < a.length; i++) {
-            if (a[i] > b[i])
+            if (smallerPref?a[i] > b[i]:a[i] < b[i])
                 return false;
             else if (a[i] == b[i])
                 mark++;
@@ -38,10 +48,13 @@ public class TopKGPSkyline {
         Collections.sort(data, new Comparator<Object>() {
             @Override
             public int compare(Object o1, Object o2) {
-                if (o1 instanceof Double[]) return (compare((Double[]) o1, (Double[]) o2));
+                if (o1 instanceof Double[])
+                    return (compare((Double[]) o1, (Double[]) o2));
                 return 0;
             }
-            public int compare(Double[] o1, Double[] o2) { return (o1[0] < o2[0] ? -1 : (o1[0] == o2[0] ? 0 : 1)); }
+            public int compare(Double[] o1, Double[] o2) {
+                return (o1[0] < o2[0] ? (smallerPref?-1:1) : (o1[0] == o2[0] ? 0 : (smallerPref?1:-1)));
+            }
         });
 
 
@@ -206,27 +219,27 @@ public class TopKGPSkyline {
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
-            int stdGSize = 3;
+            int stdGSize = 5;
             int stdTopK = 3;
             int stdDims = 3;
             int stdNOPt = 4;
             experimentTopKGP.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
             experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
-            /*int[] gSizeList = {2, 3, 4, 5};
-            int[] topKList = {2, 3, 4, 5};*/
-            int[] dimsList = {2, 3, 4, 5, 6, 7, 8};
-            /*int[] numOfPtsList = {6};*/
+            //int[] gSizeList = {2, 3, 4, 5};
+            int[] topKList = {3, 4, 5};
+            //int[] dimsList = {2, 3, 4, 5, 6, 7, 8};
+            //int[] numOfPtsList = {6};
             String resultsDir = "../results/";
-            experimentTopKGP.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGP");
-            /*experimentTopKGP.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP");
+            //experimentTopKGP.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGP");
+            //experimentTopKGP.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP");
             experimentTopKGP.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP");
-            experimentTopKGP.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGP");*/
+            //experimentTopKGP.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGP");
             // baseline
-            int[] dimsListBaseline = {2, 3};
-            experimentBaseline.saveTrialResults("D", dimsListBaseline, dir, spliter,  resultsDir+"dimensionsChangesGP_Baseline");
-            /*experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP_Baseline");
-            experimentBaseline.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP_Baseline");
-            experimentBaseline.saveTrialResults("PT", numOfPtsListBaseline, dir, spliter,  resultsDir+"numOfPointsChangesGP_Baseline");*/
+            int[] topKListBaseline = {3, 4, 5};
+            //experimentBaseline.saveTrialResults("D", dimsListBaseline, dir, spliter,  resultsDir+"dimensionsChangesGP_Baseline");
+            //experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP_Baseline");
+            experimentBaseline.saveTrialResults("K", topKListBaseline, dir, spliter,  resultsDir+"topKChangesGP_Baseline");
+            //experimentBaseline.saveTrialResults("PT", numOfPtsListBaseline, dir, spliter,  resultsDir+"numOfPointsChangesGP_Baseline");
         }
 
     }
