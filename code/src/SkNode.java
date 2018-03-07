@@ -2,6 +2,7 @@
  * Created by mashiru on 2/10/18.
  */
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 
 public class SkNode implements Comparable {
@@ -17,6 +18,14 @@ public class SkNode implements Comparable {
         this.id = 0;
         this.parents = new ArrayList<SkNode>();
         this.children = new ArrayList<SkNode>();
+    }
+
+    public SkNode(SkNode another) {
+        val = Arrays.copyOf(another.getVal(), another.getVal().length);
+        layerIdx = another.getLayerIdx();
+        id = another.getId();
+        parents = new ArrayList<>(another.getParents());
+        children = new ArrayList<>(another.getChildren());
     }
 
     public SkNode(Double[] val, int layerIdx) {
@@ -54,19 +63,6 @@ public class SkNode implements Comparable {
     public void addParent(SkNode parent) { parents.add(parent); }
 
     public List<SkNode> getChildren() { return children; }
-
-    public List<SkNode> getChildren(int endLayerIdx) {
-        return getChildren(endLayerIdx, 0);
-    }
-
-    public List<SkNode> getChildren(int endLayerIdx, float percent) {
-        SkNode cNode;
-        int nodeSize = (int)(children.size() * percent);
-        List<SkNode>  results = new ArrayList<>(children.subList(0, nodeSize));
-        for (int nIdx = nodeSize; nIdx<children.size() && (cNode=children.get(nIdx)).getLayerIdx() <= endLayerIdx; nIdx++)
-            results.add(cNode);
-        return results;
-    }
 
     public void addChild(SkNode child) { children.add(child); }
 

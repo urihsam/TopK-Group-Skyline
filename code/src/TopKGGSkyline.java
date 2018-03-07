@@ -8,18 +8,18 @@ import java.util.Collections;
  * Created by mashiru on 2/24/18.
  */
 public class TopKGGSkyline extends TopKGPSkyline {
-    protected int numOfGraphLayers;
+    protected int numOfUniverseGroups;
     public TopKGGSkyline(int gSize, int topK) {
         super(gSize, topK);
-        numOfGraphLayers = gSize;
+        numOfUniverseGroups = 0;
     }
 
     public TopKGGSkyline(int gSize, int topK, boolean smallerPref) {
         super(gSize, topK, smallerPref);
-        numOfGraphLayers = gSize;
+        numOfUniverseGroups = 0;
     }
 
-    public void setNumOfGraphLayers(int numOfLayers) { numOfGraphLayers = numOfLayers; }
+    public int getNumOfUniverseGroups() { return numOfUniverseGroups; }
 
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean silent) {
         return getTopKGroups(graph, true, silent);
@@ -33,21 +33,43 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     protected void checkGroups4TopK(SkGroup group4Checked, TopKGroup topKGroup, boolean refined) {
-        /*//System.out.println("Group-Group checkGroups4TopK");
-
+        if (topKGroup.getTopKGroup().contains(group4Checked))
+            return;
         // if topKGroup is full and the maximum size of dominated group of ugroup is smaller than the minimum in the topKGroup, then skip
         if (refined && topKGroup.getTopKGroupSize() == topK && group4Checked.getMaxSizeOfDominatedGroups() < topKGroup.getMinSizeOfDominatedGroups())
             return;
         // TODO: for groupSize == 2, 3, use combination operations
+        System.out.println("Group-Group checkGroups4TopK");
         // calculate the dominated groups using approximation method, only care about the children in the first groupSize layers
-        group4Checked.calculateDominatedGroups(numOfGraphLayers==-1?groupSize:numOfGraphLayers-1);
-        topKGroup.addSkGroup(group4Checked); // add into the topKGroup*/
+        group4Checked.calculateDominatedGroups();
+        topKGroup.addSkGroup(group4Checked); // add into the topKGroup
+    }
+
+    protected TopKGroup initialTopKGroups(SkGraph graph, boolean refined) { // not refined means baseline
+        System.out.println("Group-Group initialTopKGroups");
+        TopKGroup topKGroup = new TopKGroup(topK, true);
+        TopKGPSkyline gp = new TopKGPSkyline(getGroupSize(), getK(), getSmallerPref());
+        List<SkGroup> groups = gp.getTopKGroups(graph, !refined, true);
+        for (SkGroup group: groups) {
+            Collections.sort(group.getGroupNodes(), new Comparator<SkNode>() {
+                @Override
+                public int compare(SkNode node1, SkNode node2) {
+                    return node2.getId() - node1.getId();
+                }
+            });
+            group.calculateDominatedGroups();
+            topKGroup.addSkGroup(group);
+        }
+        System.out.println("Group-Group initialTopKGroups done");
+        return topKGroup;
     }
 
     // using group-wise method
     protected TopKGroup searchTopKGroups(SkGraph graph, boolean refined) {
         System.out.println("Group-Group searchTopKGroups");
-        TopKGroup topKGroup = new TopKGroup(topK, true);
+        // TopKGroup topKGroup = new TopKGroup(topK, true);
+        // TODO: prepare initial topK using results from pointed-dominated GSkyline
+        TopKGroup topKGroup = initialTopKGroups(graph, refined);
         List<UnitGroup> unitGroups = new ArrayList<>();
         List<SkNode> tailSet = new ArrayList<>();
         // start from the groupSize-1 th layer, since the nodes in the next layers must have more than groupSize-1 parents
@@ -57,11 +79,12 @@ public class TopKGGSkyline extends TopKGPSkyline {
                 SkNode currNode = currLayer.getLayerNode(NIdx);
                 int parentsSize = currNode.getParents().size();
                 if (parentsSize < groupSize - 1) {// even the node in current layer still has the prob of having more than groupSize -1 parents
-                    unitGroups.add(new UnitGroup(currNode)); //  mark the currNode as a unit group and add into the tail set
+                    unitGroups.add(new UnitGroup(new SkNode(currNode))); //  mark the currNode as a unit group and add into the tail set
                     tailSet.add(currNode);
                 } else if (parentsSize == groupSize - 1) { // find one group
-                    SkGroup group = new SkGroup(currNode.getParents());
-                    group.addGroupNodes(currNode); // add its parents nodes
+                    numOfUniverseGroups ++;
+                    SkGroup group = new SkGroup("GG", currNode.getParents()); // add its parents nodes
+                    group.addGroupNode(currNode);
                     checkGroups4TopK(group, topKGroup, refined);
                 }
             }
@@ -81,13 +104,17 @@ public class TopKGGSkyline extends TopKGPSkyline {
                 SkNode checkedNode = tailSet.get(UIdx);
                 if (!ugroupCover.contains(checkedNode)) { // if the unitGroup node is not contained in the covered group nodes
                     UnitGroup newUgroup = new UnitGroup(ugroup); // copy of ugroup
-                    newUgroup.addUnitGroupNodes(checkedNode); // add the checkedNode into the unit group
+                    newUgroup.addUnitGroupNodes(checkedNode, true); // add the checkedNode into the unit group
                     /*UnitGroup newUgroup = new UnitGroup(checkedNode); // new a unit group with a unit group node - checkedNode
                     newUgroup.addUnitGroup(ugroup); // add unit group*/
-                    if (newUgroup.getCoveredSkGroupSize() < groupSize)
+                    if (newUgroup.getCoveredSkGroupSize() < groupSize-1) {
+                        newUgroup.addSelf2GroupNode(checkedNode);
                         newUnitGroups.add(newUgroup); // add the unit group into the list for next recursion
-                    else if (newUgroup.getCoveredSkGroupSize() == groupSize)
+                    } else if (newUgroup.getCoveredSkGroupSize() == groupSize-1) {
+                        numOfUniverseGroups ++;
+                        newUgroup.addSelf2GroupNode(checkedNode);
                         checkGroups4TopK(newUgroup.getCoveredSkGroup(), topKGroup, refined); // check the covered group for topK
+                    }
                 }
             }
         }
@@ -108,11 +135,8 @@ public class TopKGGSkyline extends TopKGPSkyline {
             double scale = 1; // default scale is 1
             if (args.length > 4)
                 scale = Double.parseDouble(args[4]); //  scale of the num of points
-            int numOfGraphLayers = gSize; // Default number of graph Layers for cases where group size > 3
-            if (args.length > 5) // -1 means all layers
-                numOfGraphLayers = Integer.parseInt(args[5]);
-            experimentTopKGG.argumentsTrial(gSize, topK, dims, numOfPts, scale, numOfGraphLayers, dir, spliter);
-            experimentBaseline.argumentsTrial(gSize, topK, dims, numOfPts, scale, numOfGraphLayers, dir, spliter);
+            experimentTopKGG.argumentsTrial(gSize, topK, dims, numOfPts, scale, dir, spliter);
+            // experimentBaseline.argumentsTrial(gSize, topK, dims, numOfPts, scale, dir, spliter);
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
@@ -121,9 +145,8 @@ public class TopKGGSkyline extends TopKGPSkyline {
             int stdDims = 2;
             int stdNOPt = 2;
             double stdScal = 1;
-            int stdNOL = stdGSize;
-            experimentTopKGG.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal, stdNOL);
-            experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal, stdNOL);
+            experimentTopKGG.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
+            experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
             //int[] gSizeList = {2, 3}; // 3: 13846.352713462s
             int[] topKList = {3, 4, 5};
             //int[] dimsList = {2, 3};

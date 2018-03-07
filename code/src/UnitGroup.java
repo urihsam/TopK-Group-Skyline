@@ -10,23 +10,13 @@ public class UnitGroup {
     public UnitGroup(SkNode node) {
         unitGroupNodes = new ArrayList<>();
         unitGroupNodes.add(node);
-        coveredSkGroup = new SkGroup();
+        coveredSkGroup = new SkGroup("GG");
         updateCoverdGroup(node);
     }
 
     public UnitGroup(UnitGroup another) {
         unitGroupNodes = new ArrayList<>(another.getUnitGroupNodes());
         coveredSkGroup = new SkGroup(another.getCoveredSkGroup());
-    }
-
-    private void updateCoverdGroup(List<SkNode> nodes) {
-        for (SkNode node: nodes)
-            updateCoverdGroup(node);
-    }
-
-    private void updateCoverdGroup(SkNode node) {
-        coveredSkGroup.addGroupNodes(node.getParents());
-        coveredSkGroup.addGroupNodes(node);
     }
 
     public SkNode getLastNodeInUnit() { return unitGroupNodes.get(unitGroupNodes.size()-1); }
@@ -36,14 +26,35 @@ public class UnitGroup {
         coveredSkGroup.addGroupNodes(ugroup.getCoveredSkGroupNodes());
     }
 
-    public void addUnitGroupNodes(SkNode node) {
-        unitGroupNodes.add(node);
-        updateCoverdGroup(node);
+    private void updateCoverdGroup(SkNode node) {
+        updateCoverdGroup(node, false);
+    }
+    private void updateCoverdGroup(SkNode node, boolean withoutSelf) {
+        coveredSkGroup.addGroupNodes(node.getParents());
+        if (!withoutSelf) coveredSkGroup.addGroupNode(node);
     }
 
-    public void addUnitGroupNodes(List<SkNode> nodes) {
+    private void updateCoverdGroup(List<SkNode> nodes, boolean withoutSelf) {
+        for (SkNode node: nodes)
+            updateCoverdGroup(node, withoutSelf);
+    }
+
+    public void addUnitGroupNodes(SkNode node) {
+        addUnitGroupNodes(node, false);
+    }
+
+    public void addSelf2GroupNode(SkNode node) {
+        coveredSkGroup.addGroupNode(node);
+    }
+
+    public void addUnitGroupNodes(SkNode node, boolean withoutSelf) {
+        unitGroupNodes.add(node);
+        updateCoverdGroup(node, withoutSelf);
+    }
+
+    public void addUnitGroupNodes(List<SkNode> nodes, boolean withoutSelf) {
         unitGroupNodes.addAll(nodes);
-        updateCoverdGroup(nodes);
+        updateCoverdGroup(nodes, withoutSelf);
     }
 
     public List<SkNode> getUnitGroupNodes() { return unitGroupNodes; } // return the nodes in the unit group

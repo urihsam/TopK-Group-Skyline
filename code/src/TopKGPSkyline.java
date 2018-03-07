@@ -41,9 +41,12 @@ public class TopKGPSkyline {
         return mark == a.length ? false: true;
     }
 
+    public SkGraph createLayerGraph(List<Double[]> data) {
+        return createLayerGraph(data, groupSize+1);
+    }
 
     // create graph: Not brute force & Higher dimension
-    public SkGraph createLayerGraph(List<Double[]> data) {
+    public SkGraph createLayerGraph(List<Double[]> data, int maxNumOfLayer) {
         // sort the points
         Collections.sort(data, new Comparator<Object>() {
             @Override
@@ -66,16 +69,6 @@ public class TopKGPSkyline {
         // step one: create the layer structure in graph
         for (int ptIdx = 1; ptIdx < data.size(); ptIdx++) {
             SkNode pt = new SkNode(data.get(ptIdx), 0);
-            /*
-            int maxLayer = -1;
-            for (SkLayer currLayer: graph.getGraphLayers())  // for each layer in all layers
-                for (SkNode currNode : currLayer.getLayerNodes()) // for each node in this layer
-                    if (isDominate(currNode.getVal(), pt.getVal()))
-                        if (currNode.getLayerIdx() > maxLayer)
-                            maxLayer = currNode.getLayerIdx();
-            pt.setLayerIdx(maxLayer<groupSize?maxLayer+1:groupSize); // set layer index
-            graph.addGraphLayerNode(pt);
-            */
             int minLayer = 0;
             boolean flagNext = false;
             for (int lIdx=graph.getNumOfLayers()-1; lIdx>=0; lIdx--) {
@@ -90,8 +83,8 @@ public class TopKGPSkyline {
                 if (flagNext) break;
             }
             pt.setLayerIdx(minLayer<groupSize?minLayer:groupSize); // set layer index
-            graph.addGraphLayerNode(pt);
-
+            if (pt.getLayerIdx() < maxNumOfLayer)
+                graph.addGraphLayerNode(pt);
         }
 
         // step two: set IDs following the order in layers
@@ -147,7 +140,7 @@ public class TopKGPSkyline {
                                     List<SkNode> groupNodesChecked = new ArrayList<SkNode>(nChild.getParents());
                                     groupNodesRemain.removeAll(groupNodesChecked);
                                     groupNodesChecked.add(nChild);
-                                    SkGroup groupFound = new SkGroup(groupNodesChecked, gNode.getChildren());
+                                    SkGroup groupFound = new SkGroup("GP", groupNodesChecked, gNode.getChildren());
                                     // checkCombination(groupNodesRemain, g-groupNodesChecked.size(), groupFound, topKG);
                                     searchPostCombination(groupNodesRemain, new GroupCandidates(groupFound, g), topKG);
                                 }
@@ -167,7 +160,7 @@ public class TopKGPSkyline {
             if (topKG.getTopKGroupSize() == topK && node.getSizeOfDominatedNodes() + groupFound.getSizeOfDominatedNodes() <= topKG.getMinSizeOfDominatedNodes())
                 return;
             SkGroup newGroupFound = new SkGroup(groupFound); // copy of groupFound
-            newGroupFound.addGroupNodes(node);
+            newGroupFound.addGroupNode(node);
             searchCombination(nodes4Check.subList(idx+1, nodes4Check.size()), g-1, newGroupFound, topKG);
             newGroupFound = null; //  remove the reference of newGroupFound to delete this object
         }
@@ -181,7 +174,7 @@ public class TopKGPSkyline {
     protected void searchPostCombination(List<SkNode> nodes4Check, GroupCandidates candidates, TopKGroup topKG, boolean universe, List<SkGroup> universeGroups) {
         if (candidates.getNumOfCandidates() == candidates.getMaxSize()) {
             int minDominates = topKG.getMinSizeOfDominatedNodes();
-            SkGroup groupFound = new SkGroup(new ArrayList<>(candidates.getGroupDeque())); // finely calculate
+            SkGroup groupFound = new SkGroup("GP", new ArrayList<>(candidates.getGroupDeque())); // finely calculate
             if (universe)
                 universeGroups.add(groupFound);
             if (topKG.getTopKGroupSize() != topK || (groupFound.getSizeOfDominatedNodes() > minDominates && !topKG.getTopKGroup().contains(groupFound)))
@@ -224,9 +217,8 @@ public class TopKGPSkyline {
             int stdDims = 3;
             int stdNOPt = 4;
             double stdScal = 1;
-            int stdNOL = stdGSize;
-            experimentTopKGP.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal, stdNOL);
-            experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal, stdNOL);
+            experimentTopKGP.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
+            experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
             //int[] gSizeList = {2, 3, 4, 5};
             int[] topKList = {3, 4, 5};
             //int[] dimsList = {2, 3, 4, 5, 6, 7, 8};

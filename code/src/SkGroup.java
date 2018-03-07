@@ -11,30 +11,38 @@ public class SkGroup { // implements Comparable{
     protected List<SkNode> dominatedNodes;
     protected long maxSizeOfDominatedGroups;
     protected List<SkGroup> dominatedGroups;
+    protected String dominateType;
 
-    public SkGroup() {
+    public SkGroup(String type) {
+        dominateType = type;
+        assert(dominateType == "GP" || dominateType == "GG");
         gNodes = new ArrayList<>();
         dominatedNodes = new ArrayList<>();
         maxSizeOfDominatedGroups = 0;
         dominatedGroups = new ArrayList<>();
     }
 
-    public SkGroup(SkNode gnode) {
+    public SkGroup(String type, SkNode gnode) {
+        dominateType = type;
+        assert(dominateType == "GP" || dominateType == "GG");
         gNodes = new ArrayList<>();
         dominatedNodes = new ArrayList<>();
         maxSizeOfDominatedGroups = 0;
         dominatedGroups = new ArrayList<>();
-        addGroupNodes(gnode);
+        addGroupNode(gnode);
     }
 
     public SkGroup(SkGroup another) {
+        this.dominateType = another.getDominateType();
         this.gNodes = new ArrayList<>(another.getGroupNodes());
         this.dominatedNodes = new ArrayList<>(another.getDominatedNodes());
         this.maxSizeOfDominatedGroups = another.getMaxSizeOfDominatedGroups();
         this.dominatedGroups = new ArrayList<>(another.getDominatedGroups());
     }
 
-    public SkGroup(List<SkNode> gnodes) {
+    public SkGroup(String type, List<SkNode> gnodes) {
+        dominateType = type;
+        assert(dominateType == "GP" || dominateType == "GG");
         gNodes = new ArrayList<>();
         dominatedNodes = new ArrayList<>();
         maxSizeOfDominatedGroups = 0;
@@ -43,27 +51,42 @@ public class SkGroup { // implements Comparable{
     }
 
     // before invoking this construct, MAKE SURE that the kids is the merged result for dominatedNodes of gnodes
-    public SkGroup(List<SkNode> gnodes, List<SkNode> dnodes) {
+    public SkGroup(String type, List<SkNode> gnodes, List<SkNode> dnodes) {
+        dominateType = type;
+        assert(dominateType == "GP" || dominateType == "GG");
         gNodes = gnodes;
         dominatedNodes = dnodes;
         maxSizeOfDominatedGroups = 0;
         dominatedGroups = new ArrayList<>();
     }
 
+    public String getDominateType() { return dominateType; }
+
     public void addGroupNodes(List<SkNode> gnodes) {
         gNodes = merge(gNodes, gnodes); // use merge rather than addAll
-        maxSizeOfDominatedGroups += 1;
-        for (SkNode gnode: gnodes) {
-            updateChildrenAndDominates(gnode);
-            maxSizeOfDominatedGroups *= (gnode.getSizeOfDominatedNodes() + 1);
+        if (dominateType == "GP")
+            for (SkNode gnode: gnodes)
+                updateChildrenAndDominates(gnode);
+        else {
+            maxSizeOfDominatedGroups += 1;
+            for (SkNode gnode : gnodes)
+                maxSizeOfDominatedGroups *= (gnode.getSizeOfDominatedNodes() + 1);
+            maxSizeOfDominatedGroups -= 1;
         }
-        maxSizeOfDominatedGroups -= 1;
     }
 
-    public void addGroupNodes(SkNode gnode) {
-        List<SkNode> gnodes = new ArrayList<>();
+    public void addGroupNode(SkNode gnode) {
+        /*List<SkNode> gnodes = new ArrayList<>();
         gnodes.add(gnode);
-        addGroupNodes(gnodes);
+        addGroupNodes(gnodes);*/
+        gNodes.add(gnode);
+        if (dominateType == "GP")
+            updateChildrenAndDominates(gnode);
+        else {
+            maxSizeOfDominatedGroups += 1;
+            maxSizeOfDominatedGroups *= (gnode.getSizeOfDominatedNodes() + 1);
+            maxSizeOfDominatedGroups -= 1;
+        }
     }
 
     protected void updateChildrenAndDominates(SkNode node) {
@@ -84,24 +107,17 @@ public class SkGroup { // implements Comparable{
 
     public int getGroupSize() { return gNodes.size(); }
 
+
     public void calculateDominatedGroups() {
-        calculateDominatedGroups(getGroupSize(), 0);
-    }
-
-    public void calculateDominatedGroups(int endLayerIdx) {
-        calculateDominatedGroups(endLayerIdx, 0);
-    }
-
-    public void calculateDominatedGroups(int endLayerIdx, float percent) {
         List<List<SkNode>> groupTrees4Check = new ArrayList<>();
         for (SkNode gnode: gNodes) {
             List<SkNode> nodes4Check = new ArrayList<>();
             nodes4Check.add(gnode); // add this group node into the check list
             // add the children in the first (endLayerIdx+1) layers or in the first (percent) percentage of this group node into the check list
-            nodes4Check.addAll(gnode.getChildren(endLayerIdx, percent));
+            nodes4Check.addAll(gnode.getChildren());
             groupTrees4Check.add(nodes4Check);
         }
-        searchDominatedGroups(groupTrees4Check, new SkGroup()); // update dominatedGroups
+        searchDominatedGroups(groupTrees4Check, new SkGroup("GG")); // update dominatedGroups
     }
 
     protected void searchDominatedGroups(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup) {
@@ -121,7 +137,7 @@ public class SkGroup { // implements Comparable{
         for (SkNode node: nodes4Check) {
             if (!dominatedGroup.getGroupNodes().contains(node)) { // if current node is not contained in the dominated group, then add it
                 SkGroup newDominatedGroup = new SkGroup(dominatedGroup);
-                newDominatedGroup.addGroupNodes(node);
+                newDominatedGroup.addGroupNode(node);
                 searchDominatedGroups(groupTrees4Check.subList(1, groupTrees4Check.size()), newDominatedGroup);
             }
         }
