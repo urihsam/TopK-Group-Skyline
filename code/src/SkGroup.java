@@ -51,7 +51,7 @@ public class SkGroup { // implements Comparable{
     }
 
     public void addGroupNodes(List<SkNode> gnodes) {
-        gNodes.addAll(gnodes);
+        gNodes = merge(gNodes, gnodes); // use merge rather than addAll
         maxSizeOfDominatedGroups += 1;
         for (SkNode gnode: gnodes) {
             updateChildrenAndDominates(gnode);
@@ -61,11 +61,9 @@ public class SkGroup { // implements Comparable{
     }
 
     public void addGroupNodes(SkNode gnode) {
-        gNodes.add(gnode);
-        maxSizeOfDominatedGroups += 1;
-        updateChildrenAndDominates(gnode);
-        maxSizeOfDominatedGroups *= (gnode.getSizeOfDominatedNodes() + 1);
-        maxSizeOfDominatedGroups -= 1;
+        List<SkNode> gnodes = new ArrayList<>();
+        gnodes.add(gnode);
+        addGroupNodes(gnodes);
     }
 
     protected void updateChildrenAndDominates(SkNode node) {

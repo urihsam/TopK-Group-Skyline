@@ -11,7 +11,7 @@ public class UnitGroup {
         unitGroupNodes = new ArrayList<>();
         unitGroupNodes.add(node);
         coveredSkGroup = new SkGroup();
-        undateCoverdGroup(node);
+        updateCoverdGroup(node);
     }
 
     public UnitGroup(UnitGroup another) {
@@ -19,12 +19,12 @@ public class UnitGroup {
         coveredSkGroup = new SkGroup(another.getCoveredSkGroup());
     }
 
-    private void undateCoverdGroup(List<SkNode> nodes) {
+    private void updateCoverdGroup(List<SkNode> nodes) {
         for (SkNode node: nodes)
-            undateCoverdGroup(node);
+            updateCoverdGroup(node);
     }
 
-    private void undateCoverdGroup(SkNode node) {
+    private void updateCoverdGroup(SkNode node) {
         coveredSkGroup.addGroupNodes(node.getParents());
         coveredSkGroup.addGroupNodes(node);
     }
@@ -38,12 +38,12 @@ public class UnitGroup {
 
     public void addUnitGroupNodes(SkNode node) {
         unitGroupNodes.add(node);
-        undateCoverdGroup(node);
+        updateCoverdGroup(node);
     }
 
     public void addUnitGroupNodes(List<SkNode> nodes) {
         unitGroupNodes.addAll(nodes);
-        undateCoverdGroup(nodes);
+        updateCoverdGroup(nodes);
     }
 
     public List<SkNode> getUnitGroupNodes() { return unitGroupNodes; } // return the nodes in the unit group

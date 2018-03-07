@@ -15,6 +15,8 @@ public class Experiment {
     protected int standardTopK;
     protected int standardDims;
     protected int standardNOPt;
+    protected double standardScal;
+    protected int standardNOLayer;
 
 
     public Experiment(String type, boolean baseline) {
@@ -38,36 +40,37 @@ public class Experiment {
     }
 
     public SkResult argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, String dir, String spliter) {
-        return argumentsTrial(gSize, topK, dimensions, numOfPoints, -1, dir, spliter); // use all layers
+        return argumentsTrial(gSize, topK, dimensions, numOfPoints, 1, -1, dir, spliter); // use all layers
     }
 
-    public SkResult argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, int numOfGraphLayer, String dir, String spliter) {
+    public SkResult argumentsTrial(int gSize, int topK, int dimensions, int numOfPoints, double scale,
+                                   int numOfGraphLayer, String dir, String spliter) {
         System.out.println("\n********Experiment for group size "+gSize+", topK "+topK+", dimensions "+dimensions+", num of points "+numOfPoints+"********\n");
+        System.out.println("\n********scale "+scale+", num of graph layer "+numOfGraphLayer+"********\n");
         SkResult skResult = new SkResult();
         List<Double> timeResults = new ArrayList<>();
         int postCount = -1;
         boolean silent = true;
         boolean smallerPref = true;
-        String fileName = dir+"largeTestData_d"+dimensions+"_1e"+numOfPoints; // e.g. largeTestData_d2_1e5
-
-        ///*
+        String fileName = dir+"largeTestData_d"+dimensions+"_"+scale+"e"+numOfPoints; // e.g. largeTestData_d2_1e5
+        /*
         // nba data
         fileName = dir+"nba.csv";
         postCount = 5;
         numOfGraphLayer = gSize;
         spliter = ",";
         smallerPref = false;
-        //*/
+        */
         /*
         //test for testData
         silent = false;
         fileName = "../data/testData";
         gSize = 2; topK = 4;
-        numOfGraphLayer = gSize;
-        smallerPref = false;
+        //numOfGraphLayer = gSize;
+        //smallerPref = false;
         */
         File file = new File(dir, fileName);
-        if (!file.exists()) Data.generate(fileName, dimensions, numOfPoints, true);
+        if (!file.exists()) Data.generate(fileName, dimensions, numOfPoints, scale, true);
 
         TopKGPSkyline test;
         if (TrialType == "GP") test = new TopKGPSkyline(gSize, topK, smallerPref);
@@ -132,11 +135,13 @@ public class Experiment {
         return skResult;
     }
 
-    public void setStandardParams(int stdGSize, int stdTopK, int stdDims, int stdNOPt) {
+    public void setStandardParams(int stdGSize, int stdTopK, int stdDims, int stdNOPt, double stdScal, int stdNOL) {
         standardGSize = stdGSize;
         standardTopK = stdTopK;
         standardDims = stdDims;
         standardNOPt = stdNOPt;
+        standardScal = stdScal;
+        standardNOLayer = stdNOL;
     }
 
     public void saveTrialResults(String type, int[] variables, String dir, String spliter, String resultsFileName) {
@@ -150,13 +155,13 @@ public class Experiment {
                 String line = "" + var;
                 switch (type) {
                     case "GS" : // fix topK = 3, dims = 3, numOfPts = 1e4
-                        skResult = argumentsTrial(var, standardTopK, standardDims, standardNOPt, dir, spliter); break;
+                        skResult = argumentsTrial(var, standardTopK, standardDims, standardNOPt, standardScal, standardNOLayer, dir, spliter); break;
                     case "K" :  // fix gSize = 5, dims = 3, numOfPts = 1e4
-                        skResult = argumentsTrial(standardGSize, var, standardDims, standardNOPt, dir, spliter); break;
+                        skResult = argumentsTrial(standardGSize, var, standardDims, standardNOPt, standardScal, standardNOLayer, dir, spliter); break;
                     case "D": // fix gSize = 5, topK = 3, numOfPts = 1e4
-                        skResult = argumentsTrial(standardGSize, standardTopK, var, standardNOPt, dir, spliter); break;
+                        skResult = argumentsTrial(standardGSize, standardTopK, var, standardNOPt, standardScal, standardNOLayer, dir, spliter); break;
                     case "PT": // fix gSize = 5, topK = 3, dims = 3
-                        skResult = argumentsTrial(standardGSize, standardTopK, standardDims, var, dir, spliter); break;
+                        skResult = argumentsTrial(standardGSize, standardTopK, standardDims, var, standardScal, standardNOLayer, dir, spliter); break;
                     default:
                         skResult = new SkResult();
                 }

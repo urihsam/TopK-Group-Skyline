@@ -223,8 +223,10 @@ public class TopKGPSkyline {
             int stdTopK = 3;
             int stdDims = 3;
             int stdNOPt = 4;
-            experimentTopKGP.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
-            experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt);
+            double stdScal = 1;
+            int stdNOL = stdGSize;
+            experimentTopKGP.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal, stdNOL);
+            experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal, stdNOL);
             //int[] gSizeList = {2, 3, 4, 5};
             int[] topKList = {3, 4, 5};
             //int[] dimsList = {2, 3, 4, 5, 6, 7, 8};
