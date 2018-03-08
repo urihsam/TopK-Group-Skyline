@@ -2,6 +2,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * Created by mashiru on 2/11/18.
@@ -118,6 +120,8 @@ public class SkGroup { // implements Comparable{
             groupTrees4Check.add(nodes4Check);
         }
         searchDominatedGroups(groupTrees4Check, new SkGroup("GG")); // update dominatedGroups
+        Set<SkGroup> dominatedGroupsSet = new HashSet<SkGroup>(dominatedGroups);
+        dominatedGroups = new ArrayList<>(dominatedGroupsSet);
     }
 
     protected void searchDominatedGroups(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup) {
@@ -128,8 +132,9 @@ public class SkGroup { // implements Comparable{
                     return node1.getId() - node2.getId();
                 }
             });
-            if (!dominatedGroups.contains(dominatedGroup)) // if not contains
-                dominatedGroups.add(dominatedGroup);
+            /*if (!dominatedGroups.contains(dominatedGroup)) // if not contains
+                dominatedGroups.add(dominatedGroup);*/
+            dominatedGroups.add(dominatedGroup);
             return;
         }
 

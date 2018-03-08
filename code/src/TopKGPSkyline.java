@@ -208,31 +208,33 @@ public class TopKGPSkyline {
             int numOfPts = Integer.parseInt(args[3]); // the exponent X of 1eX
 
             experimentTopKGP.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
-            experimentBaseline.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
+            //experimentBaseline.argumentsTrial(gSize, topK, dims, numOfPts, dir, spliter);
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
+            //NBA
             int stdGSize = 5;
-            int stdTopK = 3;
-            int stdDims = 3;
-            int stdNOPt = 4;
+            int stdTopK = 10;
+            int stdDims = 5;
+            int stdNOPt = 3;
             double stdScal = 1;
             experimentTopKGP.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
             experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
             //int[] gSizeList = {2, 3, 4, 5};
-            int[] topKList = {3, 4, 5};
+            //int[] topKList = {3, 4, 5};
             //int[] dimsList = {2, 3, 4, 5, 6, 7, 8};
-            //int[] numOfPtsList = {6};
+            int[] numOfPtsList = {3};
             String resultsDir = "../results/";
             //experimentTopKGP.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGP");
             //experimentTopKGP.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP");
-            experimentTopKGP.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP");
+            //experimentTopKGP.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGP");
             //experimentTopKGP.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGP");
+            experimentTopKGP.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"NBAGP");
             // baseline
-            int[] topKListBaseline = {3, 4, 5};
+            //int[] topKListBaseline = {3, 4, 5};
             //experimentBaseline.saveTrialResults("D", dimsListBaseline, dir, spliter,  resultsDir+"dimensionsChangesGP_Baseline");
             //experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGP_Baseline");
-            experimentBaseline.saveTrialResults("K", topKListBaseline, dir, spliter,  resultsDir+"topKChangesGP_Baseline");
+            //experimentBaseline.saveTrialResults("K", topKListBaseline, dir, spliter,  resultsDir+"topKChangesGP_Baseline");
             //experimentBaseline.saveTrialResults("PT", numOfPtsListBaseline, dir, spliter,  resultsDir+"numOfPointsChangesGP_Baseline");
         }
 

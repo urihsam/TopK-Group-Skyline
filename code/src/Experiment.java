@@ -33,7 +33,11 @@ public class Experiment {
         for (SkGroup group: skGroups) { // for certain group
             List<List<Double>> gResults = new ArrayList<>();
             for (SkNode node: group.getGroupNodes()) // for certain node
-                gResults.add(Arrays.asList(node.getVal())); // add node's data to group
+                gResults.add(new ArrayList<>(Arrays.asList(node.getVal()))); // add node's data to group
+            double dominates = TrialType=="GG"? group.getSizeOfDominatedGroups():group.getSizeOfDominatedNodes();
+            List<Double> dominatesResult = new ArrayList<>();
+            dominatesResult.add(dominates);
+            gResults.add(dominatesResult);
             results.add(gResults); // add group result to the topK
         }
         return results;
@@ -169,7 +173,7 @@ public class Experiment {
                 line += "\nTop k groups\n";
                 int count = 1;
                 for (List<List<Double>> group: skResult.getTopKResults()) {
-                    line += ("Group " + count++);
+                    line += ("Group " + (count++) + "\n");
                     for (List<Double> node : group) {
                         for (double data : node)
                             line +=  (data + spliter);
