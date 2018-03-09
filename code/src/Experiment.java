@@ -57,20 +57,20 @@ public class Experiment {
         boolean silent = true;
         boolean smallerPref = true;
         String fileName = dir+"largeTestData_d"+dimensions+"_"+scale+"e"+numOfPoints; // e.g. largeTestData_d2_1e5
-        /*
+
         // nba data
         fileName = dir+"nba.csv";
         postCount = 5;
         spliter = ",";
         smallerPref = false;
-        */
-        /*
-        //test for testData
+
+        /*//test for testData
         silent = false;
         fileName = "../data/testData";
-        gSize = 2; topK = 4;
-        //smallerPref = false;
-        */
+        gSize = 2; topK = 5;
+        //smallerPref = false;*/
+
+
         File file = new File(dir, fileName);
         if (!file.exists()) Data.generate(fileName, dimensions, numOfPoints, scale, true);
 

@@ -157,17 +157,17 @@ public class TopKGGSkyline extends TopKGPSkyline {
             double stdScal = 1;*/
 
             //NBA
-            /*
             int stdGSize = 5;
             int stdTopK = 3;
             int stdDims = 5;
             int stdNOPt = 3;
-            double stdScal = 1;*/
-            int stdGSize = 4;
+            double stdScal = 1;
+
+            /*int stdGSize = 4;
             int stdTopK = 4;
             int stdDims = 2;
             int stdNOPt = 3;
-            double stdScal = 1;
+            double stdScal = 1;*/
 
             experimentTopKGG.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
             experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
@@ -176,14 +176,14 @@ public class TopKGGSkyline extends TopKGPSkyline {
             //int[] dimsList = {2, 3, 4, 5};
             //int[] numOfPtsList = { 3, 4, 5, 6};
             //int[] numOfPtsList = {3}; //NBA
-            int[] numOfPtsList = {4};
+            int[] numOfPtsList = {3};
             String resultsDir = "../results/";
             //experimentTopKGG.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
             //experimentTopKGG.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG");
             //experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG");
             //experimentTopKGG.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
-            experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"test4Results");
-            //experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"NBAGG");
+            //experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"test4Results");
+            experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"NBAGG");
 
             // baseline
             /*experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG_Baseline");

@@ -214,7 +214,7 @@ public class TopKGPSkyline {
             String dir = "../data/";
             //NBA
             int stdGSize = 5;
-            int stdTopK = 10;
+            int stdTopK = 20;
             int stdDims = 5;
             int stdNOPt = 3;
             double stdScal = 1;
