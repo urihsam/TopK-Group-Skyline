@@ -13,6 +13,7 @@ public class SkGroup { // implements Comparable{
     protected List<SkNode> dominatedNodes;
     protected long maxSizeOfDominatedGroups;
     protected List<SkGroup> dominatedGroups;
+    protected int sizeOfDominatedGroups;
     protected String dominateType;
 
     public SkGroup(String type) {
@@ -22,6 +23,7 @@ public class SkGroup { // implements Comparable{
         dominatedNodes = new ArrayList<>();
         maxSizeOfDominatedGroups = 0;
         dominatedGroups = new ArrayList<>();
+        sizeOfDominatedGroups = 0;
     }
 
     public SkGroup(String type, SkNode gnode) {
@@ -31,6 +33,7 @@ public class SkGroup { // implements Comparable{
         dominatedNodes = new ArrayList<>();
         maxSizeOfDominatedGroups = 0;
         dominatedGroups = new ArrayList<>();
+        sizeOfDominatedGroups = 0;
         addGroupNode(gnode);
     }
 
@@ -40,6 +43,7 @@ public class SkGroup { // implements Comparable{
         this.dominatedNodes = new ArrayList<>(another.getDominatedNodes());
         this.maxSizeOfDominatedGroups = another.getMaxSizeOfDominatedGroups();
         this.dominatedGroups = new ArrayList<>(another.getDominatedGroups());
+        this.sizeOfDominatedGroups = another.getSizeOfDominatedGroups();
     }
 
     public SkGroup(String type, List<SkNode> gnodes) {
@@ -49,6 +53,7 @@ public class SkGroup { // implements Comparable{
         dominatedNodes = new ArrayList<>();
         maxSizeOfDominatedGroups = 0;
         dominatedGroups = new ArrayList<>();
+        sizeOfDominatedGroups = 0;
         addGroupNodes(gnodes);
     }
 
@@ -60,6 +65,7 @@ public class SkGroup { // implements Comparable{
         dominatedNodes = dnodes;
         maxSizeOfDominatedGroups = 0;
         dominatedGroups = new ArrayList<>();
+        sizeOfDominatedGroups = 0;
     }
 
     public String getDominateType() { return dominateType; }
@@ -101,13 +107,24 @@ public class SkGroup { // implements Comparable{
 
     public long getMaxSizeOfDominatedGroups() { return maxSizeOfDominatedGroups; }
 
-    public int getSizeOfDominatedGroups() { return dominatedGroups.size(); }
+    public int getSizeOfDominatedGroups() { return sizeOfDominatedGroups; }
 
     public List<SkGroup> getDominatedGroups() { return dominatedGroups; }
 
     public int getSizeOfDominatedNodes() { return dominatedNodes.size(); }
 
     public int getGroupSize() { return gNodes.size(); }
+
+
+    protected List<SkGroup> uniqueFilter(List<SkGroup> groups) {
+        return new ArrayList<>(new HashSet<SkGroup>(groups));
+    }
+
+    protected void updateDominateInfo(){
+        sizeOfDominatedGroups += dominatedGroups.size();
+        dominatedGroups = null; // clear all dominatedGroups
+        dominatedGroups = new ArrayList<>();
+    }
 
 
     public void calculateDominatedGroups() {
@@ -120,8 +137,10 @@ public class SkGroup { // implements Comparable{
             groupTrees4Check.add(nodes4Check);
         }
         searchDominatedGroups(groupTrees4Check, new SkGroup("GG")); // update dominatedGroups
-        Set<SkGroup> dominatedGroupsSet = new HashSet<SkGroup>(dominatedGroups);
-        dominatedGroups = new ArrayList<>(dominatedGroupsSet);
+        /*Set<SkGroup> dominatedGroupsSet = new HashSet<SkGroup>(dominatedGroups);
+        dominatedGroups = new ArrayList<>(dominatedGroupsSet);*/
+        dominatedGroups = uniqueFilter(dominatedGroups);
+        updateDominateInfo();
     }
 
     protected void searchDominatedGroups(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup) {
@@ -135,6 +154,12 @@ public class SkGroup { // implements Comparable{
             /*if (!dominatedGroups.contains(dominatedGroup)) // if not contains
                 dominatedGroups.add(dominatedGroup);*/
             dominatedGroups.add(dominatedGroup);
+            int threshold = 10000000;
+            if (dominatedGroups.size() % threshold == threshold-1) {
+                System.out.println("Size of the Current dominated groups: " + dominatedGroups.size());
+                dominatedGroups = uniqueFilter(dominatedGroups);
+                updateDominateInfo();
+            }
             return;
         }
 
