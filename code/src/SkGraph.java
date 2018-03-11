@@ -39,6 +39,8 @@ public class SkGraph {
 
     public int getGraphSize() { return graphSize; }
 
+    public void setGraphSize(int size) { graphSize = size; }
+
     public void print() {
         System.out.println("\nGraph size: "+ graphSize + " Effective layer size: " + effectiveLayer);
         System.out.println("Graph layer info:");

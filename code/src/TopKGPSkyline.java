@@ -42,11 +42,11 @@ public class TopKGPSkyline {
     }
 
     public SkGraph createLayerGraph(List<Double[]> data) {
-        return createLayerGraph(data, groupSize+1);
+        return createLayerGraph(data, groupSize+1, false);
     }
 
     // create graph: Not brute force & Higher dimension
-    public SkGraph createLayerGraph(List<Double[]> data, int maxNumOfLayer) {
+    public SkGraph createLayerGraph(List<Double[]> data, int maxNumOfLayer, boolean skyband) {
         // sort the points
         Collections.sort(data, new Comparator<Object>() {
             @Override
@@ -87,27 +87,37 @@ public class TopKGPSkyline {
                 graph.addGraphLayerNode(pt);
         }
 
-        // step two: set IDs following the order in layers
+        System.out.println("Setting parents and children...");
+        // step two: set parents and children
+        for (int layerIdx=0; layerIdx<graph.getNumOfLayers(); layerIdx++) { // iterate each layer
+            SkLayer currLayer = graph.getGraphLayer(layerIdx);
+            for (int nodeIdx=0; nodeIdx<currLayer.getLayerNodes().size(); nodeIdx++) {// update each node in the current layer
+                SkNode currNode = currLayer.getLayerNode(nodeIdx);
+                if (skyband && currNode.getParents().size() > groupSize-1 ) {
+                    currLayer.getLayerNodes().remove(nodeIdx);
+                    graph.setGraphSize(graph.getGraphSize()-1);
+                    nodeIdx --; continue;
+                }
+                // process each layer after current layer, note: when the current layer is the last layer, i.e., layerIdx = graph.getNumOfLayers()-1, ignore the following
+                if (layerIdx<graph.getNumOfLayers()-1 ) {
+                    for (int searchLayerIdx = layerIdx + 1; searchLayerIdx < graph.getNumOfLayers(); searchLayerIdx++) { // start searching from the next layer of current
+                        SkLayer searchLayer = graph.getGraphLayer(searchLayerIdx);
+                        for (SkNode searchNode : searchLayer.getLayerNodes()) // look for each node in the search layer
+                            if (isDominate(currNode.getVal(), searchNode.getVal())) {
+                                currNode.addChild(searchNode);
+                                if (searchNode.getLayerIdx() < groupSize)
+                                    searchNode.addParent(currNode);
+                            }
+                    }
+                }
+            }
+        }
+        // step three: set IDs following the order in layers
         int ID = 0;
         for (SkLayer layerElm : graph.getGraphLayers()) // for each layer in all layers
             for (SkNode ndElm : layerElm.getLayerNodes()) // for each node in this layer
                 ndElm.setId(ID++);
 
-        System.out.println("Setting parents and children...");
-        // step three: set parents and children
-        for (int layerIdx=0; layerIdx<graph.getNumOfLayers()-1; layerIdx++) { // iterate each layer except the last one
-            SkLayer currLayer = graph.getGraphLayer(layerIdx);
-            for (SkNode currNode: currLayer.getLayerNodes()) // update each node in the current layer
-                for (int searchLayerIdx=layerIdx+1; searchLayerIdx<graph.getNumOfLayers(); searchLayerIdx++) { // start searching from the next layer of current
-                    SkLayer searchLayer = graph.getGraphLayer(searchLayerIdx);
-                    for (SkNode searchNode: searchLayer.getLayerNodes()) // look for each node in the search layer
-                        if (isDominate(currNode.getVal(), searchNode.getVal())) {
-                            currNode.addChild(searchNode);
-                            if (searchNode.getLayerIdx() < groupSize)
-                                searchNode.addParent(currNode);
-                        }
-                }
-        }
         return graph;
     }
 

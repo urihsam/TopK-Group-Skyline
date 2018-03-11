@@ -28,7 +28,8 @@ public class TopKGroup {
             @Override
             public int compare(SkGroup thisone, SkGroup another) {
         /* For Ascending order*/
-                return thisone.getSizeOfDominatedGroups() - another.getSizeOfDominatedGroups();
+                // return thisone.getSizeOfDominatedGroups() - another.getSizeOfDominatedGroups();
+                return thisone.getSizeOfDominatedGroups()>another.getSizeOfDominatedGroups()?1:thisone.getSizeOfDominatedGroups()<another.getSizeOfDominatedGroups()?-1:0;
             }
         }:new Comparator<SkGroup>() { // new a topKGroup for point-dominated
             @Override
@@ -59,7 +60,7 @@ public class TopKGroup {
         return topKGroup.peek().getSizeOfDominatedNodes();
     }
 
-    public int getMinSizeOfDominatedGroups() {
+    public long getMinSizeOfDominatedGroups() {
         if (topKGroup.size() == 0)
             return -1;
         return topKGroup.peek().getSizeOfDominatedGroups();

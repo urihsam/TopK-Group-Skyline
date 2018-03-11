@@ -13,8 +13,9 @@ public class SkGroup { // implements Comparable{
     protected List<SkNode> dominatedNodes;
     protected long maxSizeOfDominatedGroups;
     protected List<SkGroup> dominatedGroups;
-    protected int sizeOfDominatedGroups;
+    protected long sizeOfDominatedGroups;
     protected String dominateType;
+    protected int updateThreshold;
 
     public SkGroup(String type) {
         dominateType = type;
@@ -107,7 +108,7 @@ public class SkGroup { // implements Comparable{
 
     public long getMaxSizeOfDominatedGroups() { return maxSizeOfDominatedGroups; }
 
-    public int getSizeOfDominatedGroups() { return sizeOfDominatedGroups; }
+    public long getSizeOfDominatedGroups() { return sizeOfDominatedGroups; }
 
     public List<SkGroup> getDominatedGroups() { return dominatedGroups; }
 
@@ -115,32 +116,133 @@ public class SkGroup { // implements Comparable{
 
     public int getGroupSize() { return gNodes.size(); }
 
-
-    protected List<SkGroup> uniqueFilter(List<SkGroup> groups) {
-        return new ArrayList<>(new HashSet<SkGroup>(groups));
-    }
-
     protected void updateDominateInfo(){
         sizeOfDominatedGroups += dominatedGroups.size();
         dominatedGroups = null; // clear all dominatedGroups
         dominatedGroups = new ArrayList<>();
     }
 
+    protected List<List<SkNode>> twoClassifyMerge(List<SkNode> a, List<SkNode> b) {
+        List<List<SkNode>> result = new ArrayList<>();
+        List<SkNode> pureA = new ArrayList<>();
+        List<SkNode> pureB = new ArrayList<>();
+        List<SkNode> share = new ArrayList<>();
+        int aIdx = 0; int bIdx = 0;
+        SkNode aEle, bEle;
+        while (aIdx < a.size() && bIdx < b.size()) {
+            if ((aEle=a.get(aIdx)).id < (bEle=b.get(bIdx)).id) {
+                pureA.add(aEle);
+                aIdx++;
+            } else if (aEle.id > bEle.id) {
+                pureB.add(bEle);
+                bIdx++;
+            } else {
+                share.add(aEle);
+                aIdx++; bIdx++;
+            }
+        }
+        result.add(pureA);
+        result.add(pureB);
+        result.add(share);
+        return result;
+    }
+
+    protected List<List<SkNode>> threeClassifyMerge(List<SkNode> a, List<SkNode> b, List<SkNode> c) {
+        List<List<SkNode>> a_bResult = twoClassifyMerge(a, b); // pureA, pureB, shareAB
+        List<SkNode> pureA = a_bResult.get(0); List<SkNode> pureB = a_bResult.get(1); List<SkNode> AB = a_bResult.get(2);
+
+        List<List<SkNode>> a_cResult = twoClassifyMerge(pureA, c); // pureA(final), pureC, shareAC(final)
+        pureA = a_cResult.get(0); List<SkNode> pureC = a_cResult.get(1); List<SkNode> AC = a_cResult.get(2);
+
+        List<List<SkNode>> b_cResult = twoClassifyMerge(pureB, pureC); // pureB(final), pureC, shareBC(final)
+        pureB = b_cResult.get(0); pureC = b_cResult.get(1); List<SkNode> BC = b_cResult.get(2);
+
+        List<List<SkNode>> ab_cResult = twoClassifyMerge(AB, pureC); // ab(final), pureC(final), shareABC(final)
+        AB = ab_cResult.get(0); pureC = ab_cResult.get(1); List<SkNode> ABC = ab_cResult.get(2);
+
+        List<List<SkNode>> result = new ArrayList<>();
+        result.add(pureA); result.add(pureB); result.add(pureC);
+        result.add(AB); result.add(AC); result.add(BC); result.add(ABC);
+
+        return result;
+    }
+
+    private long factorial(long start, long end) {
+        long result = 1;
+        for(long ele = start; ele<=end; ele++)
+            result *= ele;
+        return result;
+    }
+
+    public long combCalculateDominatedGroups(List<List<SkNode>> groupTrees4Check) {
+        long combTotal;
+        if (groupTrees4Check.size() == 3) {
+            List<List<SkNode>> result = threeClassifyMerge(groupTrees4Check.get(0), groupTrees4Check.get(1), groupTrees4Check.get(2));
+            int a = result.get(0).size();
+            int b = result.get(1).size();
+            int c = result.get(2).size();
+            int d = result.get(3).size();
+            int e = result.get(4).size();
+            int f = result.get(5).size();
+            int g = result.get(6).size();
+            int total = a + b + c + d + e + f + g;
+            int noa = b + c + d + e + f + g;
+            int nob = a + c + d + e + f + g;
+            int noc = a + b + d + e + f + g;
+            combTotal = factorial(total - 2, total) / 6;
+            combTotal -= factorial(a - 1, a) / 2 * noa - factorial(b - 1, b) / 2 * nob - factorial(c - 1, c) / 2 * noc;
+            combTotal -= factorial(d - 1, b) / 2 * (a + b) - factorial(e - 1, e) / 2 * (a + c) - factorial(f - 1, f) / 2 * (b + c);
+            combTotal -= factorial(a - 2, a) / 6 - factorial(b - 2, b) / 6 - factorial(c - 2, c) / 6 - factorial(d - 2, d) / 6 - factorial(e - 2, e) / 6 - factorial(f - 2, f) / 6;
+        } else {
+            List<List<SkNode>> result = twoClassifyMerge(groupTrees4Check.get(0), groupTrees4Check.get(1));
+            int a = result.get(0).size();
+            int b = result.get(1).size();
+            int c = result.get(2).size();
+            combTotal = factorial(a+b+c-1, a+b+c)/2 - factorial(a-1, a)/2-factorial(b-1, b)/2;
+        }
+
+        return combTotal;
+    }
+
+    protected List<SkGroup> uniqueFilter(List<SkGroup> groups) {
+        System.out.println("Unique filtering...");
+        Set<SkGroup> groupsSet = new HashSet<>();
+        if (groups.size() < updateThreshold) {
+            groupsSet.addAll(groups);
+            groups.clear();
+            groups.addAll(groupsSet);
+        } else {
+            int length = groups.size() % updateThreshold + 1;
+            int startIdx = groups.size() - length;
+            List<SkGroup> newGroups = new ArrayList<>(groups.subList(0, startIdx));
+            groupsSet.addAll(groups.subList(startIdx, groups.size()));
+            groups.clear();
+            newGroups.addAll(groupsSet);
+            groups = newGroups;
+        }
+        System.out.println("Unique filtering done");
+        return groups;
+    }
 
     public void calculateDominatedGroups() {
         List<List<SkNode>> groupTrees4Check = new ArrayList<>();
-        for (SkNode gnode: gNodes) {
+        for (SkNode gnode : gNodes) {
             List<SkNode> nodes4Check = new ArrayList<>();
             nodes4Check.add(gnode); // add this group node into the check list
             // add the children in the first (endLayerIdx+1) layers or in the first (percent) percentage of this group node into the check list
             nodes4Check.addAll(gnode.getChildren());
             groupTrees4Check.add(nodes4Check);
         }
-        searchDominatedGroups(groupTrees4Check, new SkGroup("GG")); // update dominatedGroups
+
+        if (getGroupSize() <= 3) { // Using combination method
+            sizeOfDominatedGroups = combCalculateDominatedGroups(groupTrees4Check);
+        } else {
+            searchDominatedGroups(groupTrees4Check, new SkGroup("GG")); // update dominatedGroups
         /*Set<SkGroup> dominatedGroupsSet = new HashSet<SkGroup>(dominatedGroups);
         dominatedGroups = new ArrayList<>(dominatedGroupsSet);*/
-        dominatedGroups = uniqueFilter(dominatedGroups);
-        updateDominateInfo();
+            dominatedGroups = uniqueFilter(dominatedGroups);
+            updateDominateInfo();
+        }
     }
 
     protected void searchDominatedGroups(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup) {
@@ -154,11 +256,13 @@ public class SkGroup { // implements Comparable{
             /*if (!dominatedGroups.contains(dominatedGroup)) // if not contains
                 dominatedGroups.add(dominatedGroup);*/
             dominatedGroups.add(dominatedGroup);
-            int threshold = 10000000;
-            if (dominatedGroups.size() % threshold == threshold-1) {
+            updateThreshold = 1000000;//10000000;
+            if (dominatedGroups.size() % updateThreshold == updateThreshold-1) {
                 System.out.println("Size of the Current dominated groups: " + dominatedGroups.size());
+                System.out.println("Size of the Total dominated groups before filtering: " + sizeOfDominatedGroups);
                 dominatedGroups = uniqueFilter(dominatedGroups);
                 updateDominateInfo();
+                System.out.println("Size of the Total dominated groups after filtering: " + sizeOfDominatedGroups);
             }
             return;
         }
