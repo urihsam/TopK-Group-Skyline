@@ -205,7 +205,7 @@ public class SkGroup { // implements Comparable{
     }
 
     protected List<SkGroup> uniqueFilter(List<SkGroup> groups) {
-        System.out.println("Unique filtering...");
+        // System.out.println("Unique filtering...");
         Set<SkGroup> groupsSet = new HashSet<>();
         if (groups.size() < updateThreshold) {
             groupsSet.addAll(groups);
@@ -220,7 +220,7 @@ public class SkGroup { // implements Comparable{
             newGroups.addAll(groupsSet);
             groups = newGroups;
         }
-        System.out.println("Unique filtering done");
+        // System.out.println("Unique filtering done");
         return groups;
     }
 
@@ -258,11 +258,11 @@ public class SkGroup { // implements Comparable{
             dominatedGroups.add(dominatedGroup);
             updateThreshold = 1000000;//10000000;
             if (dominatedGroups.size() % updateThreshold == updateThreshold-1) {
-                System.out.println("Size of the Current dominated groups: " + dominatedGroups.size());
-                System.out.println("Size of the Total dominated groups before filtering: " + sizeOfDominatedGroups);
+                //System.out.println("Size of the Current dominated groups: " + dominatedGroups.size());
+                //System.out.println("Size of the Total dominated groups before filtering: " + sizeOfDominatedGroups);
                 dominatedGroups = uniqueFilter(dominatedGroups);
                 updateDominateInfo();
-                System.out.println("Size of the Total dominated groups after filtering: " + sizeOfDominatedGroups);
+                //System.out.println("Size of the Total dominated groups after filtering: " + sizeOfDominatedGroups);
             }
             return;
         }

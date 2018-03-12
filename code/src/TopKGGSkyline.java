@@ -9,6 +9,10 @@ import java.util.Collections;
  */
 public class TopKGGSkyline extends TopKGPSkyline {
     protected int numOfUniverseGroups;
+    // for information checking
+    static long count = 0;
+    static long calCount = 0;
+    //
     public TopKGGSkyline(int gSize, int topK) {
         super(gSize, topK);
         numOfUniverseGroups = 0;
@@ -33,13 +37,12 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     protected void checkGroups4TopK(SkGroup group4Checked, TopKGroup topKGroup, boolean refined) {
+        System.out.println("Group-Group checkGroups4TopK total count: " + (count++));
         if (topKGroup.getTopKGroup().contains(group4Checked))
             return;
         // if topKGroup is full and the maximum size of dominated group of ugroup is smaller than the minimum in the topKGroup, then skip
-        if (refined && topKGroup.getTopKGroupSize() == topK && group4Checked.getMaxSizeOfDominatedGroups() < topKGroup.getMinSizeOfDominatedGroups())
+        if (refined && topKGroup.getTopKGroupSize() == topK && group4Checked.getMaxSizeOfDominatedGroups() < 100 * topKGroup.getMinSizeOfDominatedGroups())
             return;
-        // TODO: for groupSize == 2, 3, use combination operations
-        System.out.println("Group-Group checkGroups4TopK");
         // calculate the dominated groups using approximation method, only care about the children in the first groupSize layers
         Collections.sort(group4Checked.getGroupNodes(), new Comparator<SkNode>() {
             @Override
@@ -49,6 +52,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
         });
         if (!topKGroup.getTopKGroup().contains(group4Checked)) {
             group4Checked.calculateDominatedGroups();
+            System.out.println("Group-Group checkGroups4TopK calculated count: " + (calCount++));
             topKGroup.addSkGroup(group4Checked); // add into the topKGroup
         }
     }
