@@ -103,6 +103,9 @@ public class SkNode implements Comparable {
         if (this.id != other.getId()) {
             return false;
         }
+        for (int vIdx=0; vIdx<this.getVal().length; vIdx++)
+            if (this.val[vIdx] != other.val[vIdx])
+                return false;
         return true;
     }
 

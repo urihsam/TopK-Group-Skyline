@@ -141,6 +141,11 @@ public class SkGroup { // implements Comparable{
                 aIdx++; bIdx++;
             }
         }
+        if (aIdx != a.size())
+            pureA.addAll(a.subList(aIdx, a.size()));
+        if (bIdx != b.size())
+            pureB.addAll(b.subList(bIdx, b.size()));
+
         result.add(pureA);
         result.add(pureB);
         result.add(share);

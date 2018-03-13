@@ -70,7 +70,6 @@ public class Experiment {
         gSize = 2; topK = 5;
         //smallerPref = false;*/
 
-
         File file = new File(dir, fileName);
         if (!file.exists()) Data.generate(fileName, dimensions, numOfPoints, scale, true);
 

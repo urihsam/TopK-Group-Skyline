@@ -94,9 +94,14 @@ public class TopKGPSkyline {
             for (int nodeIdx=0; nodeIdx<currLayer.getLayerNodes().size(); nodeIdx++) {// update each node in the current layer
                 SkNode currNode = currLayer.getLayerNode(nodeIdx);
                 if (skyband && currNode.getParents().size() > groupSize-1 ) {
+                    // update parents' info
+                    for (SkNode parent: currNode.getParents())
+                        parent.getChildren().remove(currNode);
+                    // update currLayer info
                     currLayer.getLayerNodes().remove(nodeIdx);
                     graph.setGraphSize(graph.getGraphSize()-1);
-                    nodeIdx --; continue;
+                    nodeIdx --;
+                    continue;
                 }
                 // process each layer after current layer, note: when the current layer is the last layer, i.e., layerIdx = graph.getNumOfLayers()-1, ignore the following
                 if (layerIdx<graph.getNumOfLayers()-1 ) {
