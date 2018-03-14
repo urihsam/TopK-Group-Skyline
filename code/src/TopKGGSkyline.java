@@ -40,7 +40,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
         if (topKGroup.getTopKGroup().contains(group4Checked))
             return;
         // if topKGroup is full and the maximum size of dominated group of ugroup is smaller than the minimum in the topKGroup, then skip
-        if (refined && topKGroup.getTopKGroupSize() == topK && group4Checked.getMaxSizeOfDominatedGroups() <  50 * topKGroup.getMinSizeOfDominatedGroups())
+        if (refined && topKGroup.getTopKGroupSize() == topK && group4Checked.getMaxSizeOfDominatedGroups() <  topKGroup.getMinSizeOfDominatedGroups())
             return;
         // calculate the dominated groups using approximation method, only care about the children in the first groupSize layers
         Collections.sort(group4Checked.getGroupNodes(), new Comparator<SkNode>() {
@@ -50,9 +50,11 @@ public class TopKGGSkyline extends TopKGPSkyline {
             }
         });
 
-        group4Checked.calculateDominatedGroups();
-        System.out.println("Group-Group checkGroups4TopK calculated count: " + (calCount++));
-        topKGroup.addSkGroup(group4Checked); // add into the topKGroup
+        if (!topKGroup.getTopKGroup().contains(group4Checked)) { // re-check containing after sorting
+            group4Checked.calculateDominatedGroups();
+            System.out.println("Group-Group checkGroups4TopK calculated count: " + (calCount++));
+            topKGroup.addSkGroup(group4Checked); // add into the topKGroup
+        }
     }
 
     protected TopKGroup initialTopKGroups(SkGraph graph, boolean refined) { // not refined means baseline
@@ -67,6 +69,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
                     return node2.getId() - node1.getId();
                 }
             });
+
             if (!topKGroup.getTopKGroup().contains(group)) {
                 group.calculateDominatedGroups();
                 topKGroup.addSkGroup(group);

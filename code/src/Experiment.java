@@ -85,7 +85,7 @@ public class Experiment {
         long cStartT = System.nanoTime();
         SkGraph graph;
         if (TrialType == "GP") graph= test.createLayerGraph(data);// build the graph
-        else graph= test.createLayerGraph(data, gSize, true);// build the graph, only keep first group size layers and using skyband
+        else graph= test.createLayerGraph(data, gSize, false);// build the graph, only keep first group size layers and using skyband
         long cEndT = System.nanoTime();
         long creatGraphTime = cEndT - cStartT;
         timeResults.add(creatGraphTime / Math.pow(10, 9));
