@@ -58,11 +58,11 @@ public class Experiment {
         boolean smallerPref = true;
         String fileName = dir+"largeTestData_d"+dimensions+"_"+scale+"e"+numOfPoints; // e.g. largeTestData_d2_1e5
 
-        // nba data
+        /*// nba data
         fileName = dir+"nba.csv";
         postCount = 5;
         spliter = ",";
-        smallerPref = false;
+        smallerPref = false;*/
 
         /*//test for testData
         silent = false;

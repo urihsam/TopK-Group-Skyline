@@ -40,7 +40,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
         if (topKGroup.getTopKGroup().contains(group4Checked))
             return;
         // if topKGroup is full and the maximum size of dominated group of ugroup is smaller than the minimum in the topKGroup, then skip
-        if (refined && topKGroup.getTopKGroupSize() == topK && group4Checked.getMaxSizeOfDominatedGroups() <  topKGroup.getMinSizeOfDominatedGroups())
+        if (refined && topKGroup.getTopKGroupSize() == topK && group4Checked.getMaxSizeOfDominatedGroups() <  10 * topKGroup.getMinSizeOfDominatedGroups())
             return;
         // calculate the dominated groups using approximation method, only care about the children in the first groupSize layers
         Collections.sort(group4Checked.getGroupNodes(), new Comparator<SkNode>() {
@@ -156,18 +156,18 @@ public class TopKGGSkyline extends TopKGPSkyline {
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
-            /*int stdGSize = 3;
+            int stdGSize = 3;
             int stdTopK = 3;
             int stdDims = 3;
             int stdNOPt = 3;
-            double stdScal = 1;*/
+            double stdScal = 1;
 
-            //NBA
+            /*//NBA
             int stdGSize = 5;
             int stdTopK = 3;
             int stdDims = 5;
             int stdNOPt = 3;
-            double stdScal = 1;
+            double stdScal = 1;*/
 
             /*int stdGSize = 4;
             int stdTopK = 4;
@@ -177,25 +177,25 @@ public class TopKGGSkyline extends TopKGPSkyline {
 
             experimentTopKGG.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
             experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
-            /*int[] gSizeList = {2, 3, 4, 5};
+            int[] gSizeList = {2, 3, 4, 5};
             int[] topKList = {2, 3, 4, 5};
             int[] dimsList = {2, 3, 4, 5, 6, 7, 8};
-            int[] numOfPtsList = { 3, 4, 5, 6};*/
-            int[] numOfPtsList = {3}; //NBA
+            int[] numOfPtsList = { 3, 4, 5, 6};
+            /*int[] numOfPtsList = {3}; //NBA*/
             //int[] numOfPtsList = {3}; //test
             String resultsDir = "../results/";
-            /*experimentTopKGG.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
+            experimentTopKGG.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
             experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG");
             experimentTopKGG.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
-            experimentTopKGG.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG");*/
-            //experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"test4Results");
-            experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"NBAGG");
+            experimentTopKGG.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG");
+            //experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"test4Results"); // test
+            /*experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"NBAGG"); // NBA */
 
             // baseline
-            /*experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG_Baseline");
+            experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG_Baseline");
             experimentBaseline.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG_Baseline");
             experimentBaseline.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG_Baseline");
-            experimentBaseline.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG_Baseline");*/
+            experimentBaseline.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"numOfPointsChangesGG_Baseline");
         }
     }
 }
