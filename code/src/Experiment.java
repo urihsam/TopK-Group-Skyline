@@ -56,13 +56,15 @@ public class Experiment {
         int postCount = -1;
         boolean silent = true;
         boolean smallerPref = true;
+        boolean skyband;
         String fileName = dir+"largeTestData_d"+dimensions+"_"+scale+"e"+numOfPoints; // e.g. largeTestData_d2_1e5
 
-        /*// nba data
+        // nba data
         fileName = dir+"nba.csv";
         postCount = 5;
         spliter = ",";
-        smallerPref = false;*/
+        smallerPref = false;
+        skyband = true;
 
         /*//test for testData
         silent = false;
@@ -85,7 +87,8 @@ public class Experiment {
         long cStartT = System.nanoTime();
         SkGraph graph;
         if (TrialType == "GP") graph= test.createLayerGraph(data);// build the graph
-        else graph= test.createLayerGraph(data, gSize, false);// build the graph, only keep first group size layers and using skyband
+        // if (TrialType == "GP") graph= test.createLayerGraph(data, gSize, false);// build the graph
+        else graph= test.createLayerGraph(data, gSize, skyband);// build the graph, only keep first group size layers and using skyband
         long cEndT = System.nanoTime();
         long creatGraphTime = cEndT - cStartT;
         timeResults.add(creatGraphTime / Math.pow(10, 9));
