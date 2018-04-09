@@ -26,17 +26,17 @@ public class TopKGGSkyline extends TopKGPSkyline {
     public int getNumOfUniverseGroups() { return numOfUniverseGroups; }
 
     public List<SkGroup> getTopKGroups(SkGraph graph, boolean silent) {
-        return getTopKGroups(graph, true, silent);
+        return getTopKGroups(graph, true, false, silent);
     }
 
-    public List<SkGroup> getTopKGroups(SkGraph graph, boolean refined, boolean silent) { // baseline refined: false; else true
+    public List<SkGroup> getTopKGroups(SkGraph graph, boolean refined, boolean stepwise, boolean silent) { // baseline refined: false; else true
         System.out.println("Group-Group getTopKGroups");
-        TopKGroup topKGroup = searchTopKGroups(graph, refined); // search for topK
+        TopKGroup topKGroup = searchTopKGroups(graph, refined, stepwise); // search for topK
         if (!silent) topKGroup.print();
         return topKGroup.getTopKGroup();
     }
 
-    protected void checkGroups4TopK(SkGroup group4Checked, TopKGroup topKGroup, boolean refined) {
+    protected void checkGroups4TopK(SkGroup group4Checked, TopKGroup topKGroup, boolean refined, boolean stepwise) {
         if (topKGroup.getTopKGroup().contains(group4Checked))
             return;
         // if topKGroup is full and the maximum size of dominated group of ugroup is smaller than the minimum in the topKGroup, then skip
@@ -51,13 +51,13 @@ public class TopKGGSkyline extends TopKGPSkyline {
         });
 
         if (!topKGroup.getTopKGroup().contains(group4Checked)) { // re-check containing after sorting
-            group4Checked.calculateDominatedGroups();
-            System.out.println("Group-Group checkGroups4TopK calculated count: " + (calCount++));
+            group4Checked.calculateDominatedGroups(stepwise);
+            // System.out.println("Group-Group checkGroups4TopK calculated count: " + (calCount++));
             topKGroup.addSkGroup(group4Checked); // add into the topKGroup
         }
     }
 
-    protected TopKGroup initialTopKGroups(SkGraph graph, boolean refined) { // baseline refined: false
+    protected TopKGroup initialTopKGroups(SkGraph graph, boolean refined, boolean stepwise) { // baseline refined: false
         System.out.println("Group-Group initialTopKGroups");
         TopKGroup topKGroup = new TopKGroup(topK, true);
         TopKGPSkyline gp = new TopKGPSkyline(getGroupSize(), getK(), getSmallerPref());
@@ -71,7 +71,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
             });
 
             if (!topKGroup.getTopKGroup().contains(group)) {
-                group.calculateDominatedGroups();
+                group.calculateDominatedGroups(stepwise);
                 topKGroup.addSkGroup(group);
             }
         }
@@ -80,11 +80,11 @@ public class TopKGGSkyline extends TopKGPSkyline {
     }
 
     // using group-wise method
-    protected TopKGroup searchTopKGroups(SkGraph graph, boolean refined) {
+    protected TopKGroup searchTopKGroups(SkGraph graph, boolean refined, boolean stepwise) {
         System.out.println("Group-Group searchTopKGroups");
         // TopKGroup topKGroup = new TopKGroup(topK, true);
         // TODO: prepare initial topK using results from pointed-dominated GSkyline
-        TopKGroup topKGroup = initialTopKGroups(graph, refined);
+        TopKGroup topKGroup = initialTopKGroups(graph, refined, stepwise);
         List<UnitGroup> unitGroups = new ArrayList<>();
         List<SkNode> tailSet = new ArrayList<>();
         // start from the groupSize-1 th layer, since the nodes in the next layers must have more than groupSize-1 parents
@@ -101,15 +101,15 @@ public class TopKGGSkyline extends TopKGPSkyline {
                     System.out.println("number of Universe Groups: " + (numOfUniverseGroups));
                     SkGroup group = new SkGroup("GG", currNode.getParents()); // add its parents nodes
                     group.addGroupNode(currNode);
-                    checkGroups4TopK(group, topKGroup, refined);
+                    checkGroups4TopK(group, topKGroup, refined, stepwise);
                 }
             }
         }
-        searchGroupsByUnit(unitGroups, tailSet, topKGroup, refined);
+        searchGroupsByUnit(unitGroups, tailSet, topKGroup, refined, stepwise);
         return topKGroup;
     }
 
-    protected void searchGroupsByUnit(List<UnitGroup> unitGroups, List<SkNode> tailSet, TopKGroup topKGroup, boolean refined) {
+    protected void searchGroupsByUnit(List<UnitGroup> unitGroups, List<SkNode> tailSet, TopKGroup topKGroup, boolean refined, boolean stepwise) {
         System.out.println("Group-Group searchGroupsByUnit "+unitGroups.size());
         if (unitGroups.size() == 0) // no unit groups needs to be search
             return;
@@ -129,12 +129,12 @@ public class TopKGGSkyline extends TopKGPSkyline {
                     } else if (newUgroup.getCoveredSkGroupSize() == groupSize-1) {
                         numOfUniverseGroups ++;
                         newUgroup.addSelf2GroupNode(checkedNode);
-                        checkGroups4TopK(newUgroup.getCoveredSkGroup(), topKGroup, refined); // check the covered group for topK
+                        checkGroups4TopK(newUgroup.getCoveredSkGroup(), topKGroup, refined, stepwise); // check the covered group for topK
                     }
                 }
             }
         }
-        searchGroupsByUnit(newUnitGroups, tailSet, topKGroup, refined);
+        searchGroupsByUnit(newUnitGroups, tailSet, topKGroup, refined, stepwise);
     }
 
 
@@ -156,7 +156,8 @@ public class TopKGGSkyline extends TopKGPSkyline {
         } else { // without arguments, grid testing
             String spliter = "  ";
             String dir = "../data/";
-            /*int stdGSize = 3;
+            /*// scale test
+            int stdGSize = 3;
             int stdTopK = 3;
             int stdDims = 3;
             int stdNOPt = 3;
@@ -169,19 +170,13 @@ public class TopKGGSkyline extends TopKGPSkyline {
             int stdNOPt = 3;
             double stdScal = 1;
 
-            /*int stdGSize = 4;
-            int stdTopK = 4;
-            int stdDims = 2;
-            int stdNOPt = 3;
-            double stdScal = 1;*/
-
             experimentTopKGG.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
             experimentBaseline.setStandardParams(stdGSize, stdTopK, stdDims, stdNOPt, stdScal);
             /*int[] gSizeList = {2, 3, 4, 5};
             int[] topKList = {2, 3, 4, 5};
             int[] dimsList = {2, 3, 4, 5, 6, 7, 8};
             int[] numOfPtsList = { 3, 4, 5, 6};*/
-            int[] numOfPtsList = {3}; //NBA*/
+            int[] numOfPtsList = {3}; //NBA
             //int[] numOfPtsList = {3}; //test
             String resultsDir = "../results/";
             /*experimentTopKGG.saveTrialResults("K", topKList, dir, spliter,  resultsDir+"topKChangesGG");
@@ -189,7 +184,7 @@ public class TopKGGSkyline extends TopKGPSkyline {
             experimentTopKGG.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG");
             experimentTopKGG.saveTrialResults("D", dimsList, dir, spliter,  resultsDir+"dimensionsChangesGG");*/
             //experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"test4Results"); // test
-            experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"NBAGG"); // NBA */
+            experimentTopKGG.saveTrialResults("PT", numOfPtsList, dir, spliter,  resultsDir+"NBAGG"); // NBA
 
             /*// baseline
             experimentBaseline.saveTrialResults("GS", gSizeList, dir, spliter,  resultsDir+"groupSizeChangesGG_Baseline");

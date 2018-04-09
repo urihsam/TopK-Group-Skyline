@@ -16,6 +16,7 @@ public class SkGroup { // implements Comparable{
     protected long sizeOfDominatedGroups;
     protected String dominateType;
     protected int updateThreshold;
+    protected int processThreshold;
 
     public SkGroup(String type) {
         dominateType = type;
@@ -116,10 +117,11 @@ public class SkGroup { // implements Comparable{
 
     public int getGroupSize() { return gNodes.size(); }
 
-    protected void updateDominateInfo(){
-        sizeOfDominatedGroups += dominatedGroups.size();
-        dominatedGroups = null; // clear all dominatedGroups
-        dominatedGroups = new ArrayList<>();
+    protected List<SkGroup> updateDominateInfo(List<SkGroup> currDominatedGroups){
+        sizeOfDominatedGroups += currDominatedGroups.size();
+        currDominatedGroups = null; // clear all dominatedGroups
+        currDominatedGroups = new ArrayList<>();
+        return currDominatedGroups;
     }
 
     protected List<List<SkNode>> twoClassifyMerge(List<SkNode> a, List<SkNode> b) {
@@ -229,7 +231,30 @@ public class SkGroup { // implements Comparable{
         return groups;
     }
 
-    public void calculateDominatedGroups() {
+    protected List<SkGroup> uniqueFilterByBatch(List<SkGroup> groups) {
+        if (groups.size() < processThreshold) {
+            Set<SkGroup> groupsSet = new HashSet<>();
+            groupsSet.addAll(groups);
+            groups.clear();
+            groups.addAll(groupsSet);
+        } else {
+            // System.out.println("Group-Group uniqueFilterByBatch, threshold " + processThreshold);
+            List<SkGroup> newGroups = new ArrayList<>();
+            while (groups.size() != 0) {
+                int processSize = groups.size() > processThreshold ? processThreshold : groups.size();
+                Set<SkGroup> groupsSet = new HashSet<>();
+                groupsSet.addAll(groups.subList(0, processSize));
+                groups.removeAll(groups.subList(0, processSize));
+                newGroups.addAll(groupsSet);
+                groupsSet = null;
+            }
+            groups = newGroups;
+        }
+        // System.out.println("Unique filtering done");
+        return groups;
+    }
+
+    public void calculateDominatedGroups(boolean stepwise) {
         List<List<SkNode>> groupTrees4Check = new ArrayList<>();
         for (SkNode gnode : gNodes) {
             List<SkNode> nodes4Check = new ArrayList<>();
@@ -239,19 +264,71 @@ public class SkGroup { // implements Comparable{
             groupTrees4Check.add(nodes4Check);
         }
 
+        Collections.sort(groupTrees4Check, new Comparator<List<SkNode>>() {
+            @Override
+            public int compare(List<SkNode> list1, List<SkNode> list2) {
+                return list2.size() - list1.size();
+            }
+        });
+
         if (getGroupSize() <= 3) { // Using combination method
             sizeOfDominatedGroups = combCalculateDominatedGroups(groupTrees4Check);
         } else {
-            searchDominatedGroups(groupTrees4Check, new SkGroup("GG")); // update dominatedGroups
+            if (stepwise) processThreshold = 1000000;
+            dominatedGroups = calculateDominatedGroups(groupTrees4Check, new SkGroup("GG"), stepwise); // update dominatedGroups
         /*Set<SkGroup> dominatedGroupsSet = new HashSet<SkGroup>(dominatedGroups);
         dominatedGroups = new ArrayList<>(dominatedGroupsSet);*/
-            dominatedGroups = uniqueFilter(dominatedGroups);
-            updateDominateInfo();
+            if (!stepwise)
+                dominatedGroups = uniqueFilter(dominatedGroups);
+            else
+                dominatedGroups = uniqueFilterByBatch(dominatedGroups);
+            dominatedGroups = updateDominateInfo(dominatedGroups);
         }
     }
 
-    protected void searchDominatedGroups(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup) {
-        if (dominatedGroup.getGroupSize() == getGroupSize()) { // if the dominated group has the same size as this group, then stop
+    protected List<SkGroup>  calculateDominatedGroups(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup, boolean stepwise) {
+        List<SkGroup> currDominatedGroups = new ArrayList<>();
+        if (stepwise == false) searchDominatedGroups(groupTrees4Check, dominatedGroup, getGroupSize(), currDominatedGroups);
+        else searchDominatedGroupsStepwise(groupTrees4Check, dominatedGroup, currDominatedGroups);
+        return currDominatedGroups;
+    }
+
+    protected List<SkGroup> searchDominatedGroupsStepwise(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup, List<SkGroup> currDominatedGroups) {
+        // first step: get the dominateGroups with group size of 2
+        searchDominatedGroups(groupTrees4Check.subList(0, 2), dominatedGroup, 2, currDominatedGroups, true); //
+        currDominatedGroups = uniqueFilterByBatch(currDominatedGroups);
+        System.out.println("Group-Group searchDominatedGroupsStepwise of size 2: " + (currDominatedGroups.size()));
+        for (int gTIdx = 2; gTIdx<groupTrees4Check.size(); gTIdx++) { // for each tree
+            List<SkNode> currGroupTree = groupTrees4Check.get(gTIdx);
+            List<SkGroup> newCurrDominatedGroups = new ArrayList<>(); // new dominatedGroups contains group nodes with size of one more than group in currDominatedGroups
+            for (SkGroup dGroup: currDominatedGroups) { // for each dominatedGroup
+                for (SkNode currNode: currGroupTree) { // for each node in curr tree
+                    if (!dGroup.getGroupNodes().contains(currNode)) { // if curr dominatedGroup not contains curr node
+                        SkGroup newDGroup = new SkGroup(dGroup); // create a new dominated group with curr dominatedGroup and the curr node
+                        newDGroup.addGroupNode(currNode);
+                        newCurrDominatedGroups.add(newDGroup); // add the new dominatedGroup into the new dominatedGroups
+                    }
+                }
+                if (newCurrDominatedGroups.size() % 100000 < 80000)
+                    System.out.println("Update new dominated groups: " + newCurrDominatedGroups.size());
+                if (newCurrDominatedGroups.size() >= processThreshold)
+                    newCurrDominatedGroups = uniqueFilterByBatch(newCurrDominatedGroups);
+            }
+            currDominatedGroups = null;
+            currDominatedGroups = uniqueFilterByBatch(newCurrDominatedGroups); // update currDominatedGroups
+            newCurrDominatedGroups = null;
+            System.out.println("Group-Group searchDominatedGroupsStepwise of size " + (gTIdx+1) + ": "+ (currDominatedGroups.size()));
+        }
+        return currDominatedGroups;
+    }
+
+    protected void searchDominatedGroups(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup, int targetSize, List<SkGroup> currDominatedGroups) {
+        searchDominatedGroups(groupTrees4Check, dominatedGroup, targetSize, currDominatedGroups, false);
+    }
+
+    protected void searchDominatedGroups(List<List<SkNode>> groupTrees4Check, SkGroup dominatedGroup,
+                                         int targetSize, List<SkGroup> currDominatedGroups, boolean stepwise) {
+        if (dominatedGroup.getGroupSize() == targetSize) { // if the dominated group has the same size as this group, then stop
             Collections.sort(dominatedGroup.getGroupNodes(), new Comparator<SkNode>() {
                 @Override
                 public int compare(SkNode node1, SkNode node2) {
@@ -260,13 +337,17 @@ public class SkGroup { // implements Comparable{
             });
             /*if (!dominatedGroups.contains(dominatedGroup)) // if not contains
                 dominatedGroups.add(dominatedGroup);*/
-            dominatedGroups.add(dominatedGroup);
+            currDominatedGroups.add(dominatedGroup);
             updateThreshold = 1000000;//10000000;
-            if (dominatedGroups.size() % updateThreshold == updateThreshold-1) {
+            if (currDominatedGroups.size() % updateThreshold == updateThreshold-1) {
                 //System.out.println("Size of the Current dominated groups: " + dominatedGroups.size());
                 //System.out.println("Size of the Total dominated groups before filtering: " + sizeOfDominatedGroups);
-                dominatedGroups = uniqueFilter(dominatedGroups);
-                updateDominateInfo();
+
+                if (!stepwise) { // if not stepwise = approx is true, the sizeOfDominatedGroups will be updated and currDominatedGroups will be emptied
+                    currDominatedGroups = uniqueFilter(currDominatedGroups);
+                    currDominatedGroups = updateDominateInfo(currDominatedGroups);
+                } else
+                    currDominatedGroups = uniqueFilterByBatch(currDominatedGroups);
                 //System.out.println("Size of the Total dominated groups after filtering: " + sizeOfDominatedGroups);
             }
             return;
@@ -277,7 +358,7 @@ public class SkGroup { // implements Comparable{
             if (!dominatedGroup.getGroupNodes().contains(node)) { // if current node is not contained in the dominated group, then add it
                 SkGroup newDominatedGroup = new SkGroup(dominatedGroup);
                 newDominatedGroup.addGroupNode(node);
-                searchDominatedGroups(groupTrees4Check.subList(1, groupTrees4Check.size()), newDominatedGroup);
+                searchDominatedGroups(groupTrees4Check.subList(1, groupTrees4Check.size()), newDominatedGroup, targetSize, currDominatedGroups, stepwise);
             }
         }
     }

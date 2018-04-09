@@ -56,15 +56,17 @@ public class Experiment {
         int postCount = -1;
         boolean silent = true;
         boolean smallerPref = true;
-        boolean skyband;
+        boolean skyband = false;
+        boolean stepwise = false;
         String fileName = dir+"largeTestData_d"+dimensions+"_"+scale+"e"+numOfPoints; // e.g. largeTestData_d2_1e5
 
         // nba data
         fileName = dir+"nba.csv";
         postCount = 5;
         spliter = ",";
+        stepwise = true;
         smallerPref = false;
-        skyband = true;
+        //skyband = true;
 
         /*//test for testData
         silent = false;
@@ -103,7 +105,7 @@ public class Experiment {
             long start2 = System.nanoTime();
             List<SkGroup> topKGroups;
             if (TrialType == "GP") topKGroups = test.getTopKGroups(graphTopk, false, silent); // Group-point
-            else topKGroups = test.getTopKGroups(graphTopk, true, silent); // Group-group
+            else topKGroups = ((TopKGGSkyline)test).getTopKGroups(graphTopk, true, stepwise, silent); // Group-group
 
             long end2 = System.nanoTime();
             long calculation2 = end2 - start2;
